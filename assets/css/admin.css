@@ -1,0 +1,256 @@
+/* Admin Panel Styles */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+.admin-sidebar {
+    width: 250px;
+    background: #1e293b;
+    color: white;
+    padding: 0;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.admin-logo {
+    padding: 1.5rem;
+    border-bottom: 1px solid #334155;
+}
+
+.admin-logo h2 {
+    color: #f1f5f9;
+    font-size: 1.25rem;
+}
+
+.admin-nav {
+    list-style: none;
+    padding: 0;
+}
+
+.admin-nav li {
+    border-bottom: 1px solid #334155;
+}
+
+.admin-nav .nav-link {
+    display: block;
+    padding: 1rem 1.5rem;
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.admin-nav .nav-link:hover,
+.admin-nav .nav-link.active {
+    background: #334155;
+    color: white;
+}
+
+.admin-content {
+    flex: 1;
+    margin-left: 250px;
+    padding: 2rem;
+}
+
+.admin-section {
+    display: none;
+}
+
+.admin-section.active {
+    display: block;
+}
+
+.admin-section h1 {
+    margin-bottom: 2rem;
+    color: #1e293b;
+    font-size: 2rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.stat-card h3 {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-card .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2563eb;
+}
+
+/* Admin Table */
+.admin-table {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.admin-item {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-item:last-child {
+    border-bottom: none;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.item-header h3 {
+    color: #1e293b;
+    margin: 0;
+}
+
+.author,
+.reporter,
+.post-title {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.report-type {
+    background: #fef3c7;
+    color: #d97706;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.item-content {
+    margin-bottom: 1rem;
+    color: #374151;
+    line-height: 1.6;
+}
+
+.item-content p {
+    margin-bottom: 0.5rem;
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.item-actions form {
+    display: inline-block;
+}
+
+.item-actions select {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: white;
+    font-size: 0.9rem;
+}
+
+.item-actions select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Status indicators */
+.status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-active {
+    background: #d1fae5;
+    color: #16a34a;
+}
+
+.status-limited {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.status-banned {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.status-pending {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.status-published {
+    background: #d1fae5;
+    color: #16a34a;
+}
+
+.status-hidden {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Responsive Admin */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    
+    .admin-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .item-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .item-actions form {
+        width: 100%;
+    }
+    
+    .item-actions .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
