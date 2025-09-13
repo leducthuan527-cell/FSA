@@ -1,10 +1,13 @@
 import React from 'react';
+import { HeroGeometric } from '@/components/ui/shape-landing-hero';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <p>Start prompting (or editing) to see magic happen :)</p>
-    </div>
+    <HeroGeometric 
+      badge="Personal Blog System"
+      title1="Welcome to Our"
+      title2="Creative Community"
+    />
   );
 }
 

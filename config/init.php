@@ -19,9 +19,8 @@ function getUserId() {
     return isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
 }
 
-
 function sanitizeInput($data) {
-    return htmlspecialchars(strip_tags(trim($data)));
+    return trim(strip_tags($data));
 }
 
 function redirect($url) {

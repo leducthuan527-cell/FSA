@@ -19,6 +19,24 @@ class Post {
     }
 
 public function getPublishedPosts($user_id, $limit = 10, $offset = 0) {
+    // Handle case when user is not logged in
+    if ($user_id === null) {
+        $query = "SELECT p.*, u.username, u.avatar 
+                  FROM " . $this->table_name . " p
+                  JOIN users u ON p.user_id = u.id
+                  WHERE p.status = 'published' 
+                    AND u.status != 'banned'
+                  ORDER BY p.created_at DESC 
+                  LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
     $query = "SELECT p.*, u.username, u.avatar 
               FROM " . $this->table_name . " p
               JOIN users u ON p.user_id = u.id

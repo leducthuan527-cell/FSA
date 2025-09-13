@@ -41,6 +41,7 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($profile_data['username']); ?>'s Profile - Personal Blog</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/hero.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
