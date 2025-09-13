@@ -8,13 +8,28 @@ class Comment {
     }
 
     public function create($post_id, $user_id, $content) {
-        $query = "INSERT INTO " . $this->table_name . " (post_id, user_id, content) VALUES (?, ?, ?)";
+        $query = "INSERT INTO " . $this->table_name . " (post_id, user_id, content, media_file) VALUES (?, ?, ?, ?)";
         $stmt = $this->conn->prepare($query);
-        return $stmt->execute([$post_id, $user_id, $content]);
+        return $stmt->execute([$post_id, $user_id, $content, null]);
+    }
+
+    public function createWithMedia($post_id, $user_id, $content, $media_file = null) {
+        $query = "INSERT INTO " . $this->table_name . " (post_id, user_id, content, media_file) VALUES (?, ?, ?, ?)";
+        $stmt = $this->conn->prepare($query);
+        return $stmt->execute([$post_id, $user_id, $content, $media_file]);
+    }
+
+    public function update($id, $content, $media_file = null) {
+        // When updating, set status back to pending for admin review
+        $query = "UPDATE " . $this->table_name . " 
+                  SET content = ?, media_file = ?, status = 'pending', updated_at = NOW() 
+                  WHERE id = ?";
+        $stmt = $this->conn->prepare($query);
+        return $stmt->execute([$content, $media_file, $id]);
     }
 
     public function getPostComments($post_id) {
-        $query = "SELECT c.*, u.username, u.avatar 
+        $query = "SELECT c.*, u.username, u.avatar, c.media_file 
                   FROM " . $this->table_name . " c 
                   JOIN users u ON c.user_id = u.id 
                   WHERE c.post_id = ? AND c.status = 'approved' AND u.status != 'banned'
@@ -31,7 +46,7 @@ class Comment {
     }
 
     public function getCommentById($id) {
-    $query = "SELECT * FROM comments WHERE id = ?";
+    $query = "SELECT *, media_file FROM comments WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->execute([$id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -39,7 +54,7 @@ class Comment {
 
 
     public function getPendingComments() {
-        $query = "SELECT c.*, u.username, p.title as post_title 
+        $query = "SELECT c.*, u.username, p.title as post_title, c.media_file 
                   FROM " . $this->table_name . " c 
                   JOIN users u ON c.user_id = u.id 
                   JOIN posts p ON c.post_id = p.id 
@@ -54,6 +69,15 @@ class Comment {
         $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
         $stmt = $this->conn->prepare($query);
         return $stmt->execute([$id]);
+    }
+
+    public function canUserEdit($comment_id, $user_id) {
+        $query = "SELECT user_id FROM " . $this->table_name . " WHERE id = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute([$comment_id]);
+        $comment = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return $comment && $comment['user_id'] == $user_id;
     }
 }
 ?>

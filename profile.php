@@ -26,11 +26,12 @@ if(!$profile_data) {
 $is_limited = $profile_data['status'] === 'limited' || $profile_data['status'] === 'banned';
 $is_own_profile = isLoggedIn() && getUserId() == $profile_id;
 
+// Limited/banned profiles should be inaccessible to others
 if($is_limited && !$is_own_profile && !isAdmin()) {
     $access_denied = true;
 } else {
     $access_denied = false;
-    $user_posts = $post->getUserPosts($profile_id);
+    $user_posts = $post->getUserPosts($profile_id, getUserId());
 }
 ?>
 
@@ -50,11 +51,18 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
         <div class="container">
             <?php if($access_denied): ?>
                 <div class="access-denied">
-                    <h1>Unable to access this user's page</h1>
-                    <p>This profile is currently not available.</p>
+                    <h1>Profile Not Available</h1>
+                    <p>This user's profile is currently restricted and cannot be viewed.</p>
                     <a href="index.php" class="btn btn-primary">← Back to Home</a>
                 </div>
             <?php else: ?>
+                <?php if($is_limited && $is_own_profile): ?>
+                    <div class="profile-restricted">
+                        <h3>Account Status: <?php echo ucfirst($profile_data['status']); ?></h3>
+                        <p>Your account has been <?php echo $profile_data['status']; ?>. Some features may be unavailable.</p>
+                    </div>
+                <?php endif; ?>
+                
                 <div class="profile-container">
                     <div class="profile-header">
                         <div class="profile-avatar">
@@ -73,7 +81,7 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
                                     <span class="stat-label">Comments</span>
                                 </div>
                                 <div class="stat">
-                                    <span class="stat-number"><?php echo ucfirst($profile_data['gender']); ?></span>
+                                    <span class="stat-number"><?php echo $profile_data['gender_display']; ?></span>
                                     <span class="stat-label">Gender</span>
                                 </div>
                             </div>
@@ -112,7 +120,19 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
                                             <div class="post-excerpt">
                                                 <?php echo substr(strip_tags($post_item['content']), 0, 150) . '...'; ?>
                                             </div>
-                                            <time><?php echo formatDate($post_item['created_at']); ?></time>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                                                <time class="post-date-small"><?php echo formatDate($post_item['created_at']); ?></time>
+                                                <?php if($is_own_profile && $post_item['status'] === 'published'): ?>
+                                                    <div class="edit-delete-actions">
+                                                        <a href="edit-post.php?id=<?php echo $post_item['id']; ?>" class="btn btn-edit btn-sm">Edit</a>
+                                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?')">
+                                                            <input type="hidden" name="action" value="delete_post">
+                                                            <input type="hidden" name="post_id" value="<?php echo $post_item['id']; ?>">
+                                                            <button type="submit" class="btn btn-delete btn-sm">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
                                         </article>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
@@ -125,5 +145,18 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
     </main>
 
     <?php include 'includes/footer.php'; ?>
+    
+    <script>
+        // Handle post deletion
+        <?php if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_post' && $is_own_profile): ?>
+            <?php
+            $post_id = (int)$_POST['post_id'];
+            if($post->canUserEdit($post_id, getUserId())) {
+                $post->delete($post_id);
+                echo "window.location.reload();";
+            }
+            ?>
+        <?php endif; ?>
+    </script>
 </body>
 </html>

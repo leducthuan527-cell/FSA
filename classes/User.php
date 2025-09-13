@@ -33,20 +33,26 @@ class User {
     }
 public function getUserById($id) {
     $query = "SELECT u.id, u.username, u.email, u.role, u.status, 
-                     u.created_at,
-                     COALESCE(u.gender, 'unknown') AS gender,
-                     COALESCE(us.total_posts, 0) AS total_posts,
-                     COALESCE(us.total_comments, 0) AS total_comments,
-                     u.avatar
+                     u.created_at, u.avatar,
+                     COALESCE(u.gender, 'prefer_not_to_say') AS gender,
+                     COUNT(DISTINCT p.id) AS total_posts,
+                     COUNT(DISTINCT c.id) AS total_comments
               FROM users u
-              LEFT JOIN user_stats us ON u.id = us.id
-              WHERE u.id = ?";
+              LEFT JOIN posts p ON u.id = p.user_id AND p.status = 'published'
+              LEFT JOIN comments c ON u.id = c.user_id AND c.status = 'approved'
+              WHERE u.id = ?
+              GROUP BY u.id";
     $stmt = $this->conn->prepare($query);
     $stmt->execute([$id]);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($result && !isset($result['gender'])) {
-        $result['gender'] = 'unknown'; 
+    if ($result) {
+        // Convert gender display
+        if ($result['gender'] === 'prefer_not_to_say') {
+            $result['gender_display'] = 'Unknown';
+        } else {
+            $result['gender_display'] = ucfirst($result['gender']);
+        }
     }
 
     return $result;

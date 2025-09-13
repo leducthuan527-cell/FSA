@@ -6,8 +6,14 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$posts_per_page = 6;
+$offset = ($page - 1) * $posts_per_page;
+
 $post = new Post($db);
-$posts = $post->getPublishedPosts(getUserId(), 10, 0);
+$posts = $post->getPublishedPosts(getUserId(), $posts_per_page, $offset);
+$total_posts = $post->getTotalPublishedPosts(getUserId());
+$has_more = ($offset + $posts_per_page) < $total_posts;
 ?>
 
 <!DOCTYPE html>
@@ -134,6 +140,14 @@ $posts = $post->getPublishedPosts(getUserId(), 10, 0);
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
+                
+                <?php if($has_more): ?>
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button id="load-more-btn" class="btn btn-primary" onclick="loadMorePosts()">
+                            Show More Posts
+                        </button>
+                    </div>
+                <?php endif; ?>
             </div>
         </section>
     </main>
@@ -141,5 +155,36 @@ $posts = $post->getPublishedPosts(getUserId(), 10, 0);
     <?php include 'includes/footer.php'; ?>
     
     <script src="assets/js/main.js"></script>
+    <script>
+        let currentPage = <?php echo $page; ?>;
+        
+        function loadMorePosts() {
+            currentPage++;
+            const btn = document.getElementById('load-more-btn');
+            btn.textContent = 'Loading...';
+            btn.disabled = true;
+            
+            fetch(`load-more-posts.php?page=${currentPage}`)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        const postsGrid = document.querySelector('.posts-grid');
+                        postsGrid.insertAdjacentHTML('beforeend', data.html);
+                        
+                        if(!data.has_more) {
+                            btn.style.display = 'none';
+                        } else {
+                            btn.textContent = 'Show More Posts';
+                            btn.disabled = false;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    btn.textContent = 'Show More Posts';
+                    btn.disabled = false;
+                });
+        }
+    </script>
 </body>
 </html>

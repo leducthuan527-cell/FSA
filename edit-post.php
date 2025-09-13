@@ -10,7 +10,15 @@ if(!isLoggedIn()) {
     redirect('auth/login.php');
 }
 
-if($_SESSION['status'] === 'limited') {
+if(!isset($_GET['id'])) {
+    redirect('index.php');
+}
+
+$post_id = (int)$_GET['id'];
+$post = new Post($db);
+$post_data = $post->getPostById($post_id);
+
+if(!$post_data || !$post->canUserEdit($post_id, getUserId())) {
     redirect('index.php');
 }
 
@@ -28,7 +36,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif(strlen($content) > 3000) {
         $error = 'Content must be 3000 characters or less';
     } else {
-        $media_file = null;
+        $media_file = $post_data['media_file']; // Keep existing media by default
         
         // Handle media upload
         if(isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
@@ -36,7 +44,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
             $file_type = $_FILES['media']['type'];
             $file_size = $_FILES['media']['size'];
             
-            if($file_size > 10 * 1024 * 1024) { // 10MB limit
+            if($file_size > 10 * 1024 * 1024) {
                 $error = 'File size must be less than 10MB';
             } elseif(in_array($file_type, $allowed_types)) {
                 $file_extension = pathinfo($_FILES['media']['name'], PATHINFO_EXTENSION);
@@ -48,24 +56,26 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 if(move_uploaded_file($_FILES['media']['tmp_name'], $upload_path)) {
+                    // Delete old media file if exists
+                    if($post_data['media_file'] && file_exists('assets/media/' . $post_data['media_file'])) {
+                        unlink('assets/media/' . $post_data['media_file']);
+                    }
                     $media_file = $new_filename;
                 } else {
                     $error = 'Failed to upload media file';
                 }
             } else {
-                $error = 'Invalid file type. Only images, videos, and audio files are allowed';
+                $error = 'Invalid file type';
             }
         }
         
         if(!$error) {
-        $post = new Post($db);
-            if($post->createWithMedia(getUserId(), $title, $content, $media_file)) {
-            $success = 'Post submitted for review. It will be published after admin approval.';
-                // Clear form data
-                $_POST = array();
-        } else {
-            $error = 'Failed to create post. Please try again.';
-        }
+            if($post->update($post_id, $title, $content, $media_file)) {
+                $success = 'Post updated successfully! It will be reviewed by admin before being published.';
+                $post_data = $post->getPostById($post_id); // Refresh data
+            } else {
+                $error = 'Failed to update post';
+            }
         }
     }
 }
@@ -76,7 +86,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Post - Personal Blog</title>
+    <title>Edit Post - Personal Blog</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/hero.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -87,7 +97,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     <main class="main-content">
         <div class="container">
             <div class="create-post-container">
-                <h1>Create New Post</h1>
+                <h1>Edit Post</h1>
                 
                 <?php if($error): ?>
                     <div class="alert alert-error"><?php echo $error; ?></div>
@@ -97,7 +107,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="alert alert-success"><?php echo $success; ?></div>
                 <?php endif; ?>
                 
-                <form method="POST" class="post-form">
                 <form method="POST" enctype="multipart/form-data" class="post-form">
                     <div class="form-group">
                         <label for="title">Post Title</label>
@@ -108,8 +117,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <button type="button" onclick="formatText('title', 'underline')" title="Underline"><i class="fas fa-underline"></i></button>
                                 <button type="button" onclick="insertLink('title')" title="Insert Link"><i class="fas fa-link"></i></button>
                             </div>
-                        <input type="text" id="title" name="title" required 
-                                   value="<?php echo !$success && isset($_POST['title']) ? htmlspecialchars($_POST['title']) : ''; ?>"
+                            <input type="text" id="title" name="title" required 
+                                   value="<?php echo htmlspecialchars($post_data['title']); ?>"
                                    maxlength="100">
                             <div class="char-counter">
                                 <span id="title-count">0</span>/100 characters
@@ -130,22 +139,46 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <button type="button" onclick="formatText('content', 'ul')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
                                 <button type="button" onclick="formatText('content', 'ol')" title="Numbered List"><i class="fas fa-list-ol"></i></button>
                             </div>
-                            <textarea id="content" name="content" rows="15" required maxlength="3000"><?php echo !$success && isset($_POST['content']) ? htmlspecialchars($_POST['content']) : ''; ?></textarea>
+                            <textarea id="content" name="content" rows="15" required maxlength="3000"><?php echo htmlspecialchars($post_data['content']); ?></textarea>
                             <div class="char-counter">
                                 <span id="content-count">0</span>/3000 characters
                             </div>
                         </div>
                     </div>
                     
+                    <?php if($post_data['media_file']): ?>
+                        <div class="form-group">
+                            <label>Current Media</label>
+                            <div class="media-preview">
+                                <?php
+                                $media_path = 'assets/media/' . $post_data['media_file'];
+                                $file_extension = strtolower(pathinfo($post_data['media_file'], PATHINFO_EXTENSION));
+                                
+                                if(in_array($file_extension, ['jpg', 'jpeg', 'png', 'gif'])):
+                                ?>
+                                    <img src="<?php echo $media_path; ?>" alt="Current media" style="max-width: 200px;">
+                                <?php elseif(in_array($file_extension, ['mp4', 'webm'])): ?>
+                                    <video controls style="max-width: 200px;">
+                                        <source src="<?php echo $media_path; ?>" type="video/<?php echo $file_extension; ?>">
+                                    </video>
+                                <?php elseif(in_array($file_extension, ['mp3', 'wav'])): ?>
+                                    <audio controls>
+                                        <source src="<?php echo $media_path; ?>" type="audio/<?php echo $file_extension; ?>">
+                                    </audio>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    
                     <div class="form-group">
-                        <label for="media">Attach Media (Optional)</label>
+                        <label for="media">Update Media (Optional)</label>
                         <input type="file" id="media" name="media" accept="image/*,video/*,audio/*">
-                        <small>Maximum file size: 10MB. Supported formats: Images (JPG, PNG, GIF), Videos (MP4, WebM), Audio (MP3, WAV)</small>
+                        <small>Leave empty to keep current media. Maximum file size: 10MB.</small>
                     </div>
                     
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Submit for Review</button>
-                        <a href="index.php" class="btn btn-outline">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Update Post</button>
+                        <a href="post.php?id=<?php echo $post_id; ?>" class="btn btn-outline">Cancel</a>
                     </div>
                 </form>
             </div>
