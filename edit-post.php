@@ -107,73 +107,83 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="alert alert-success"><?php echo $success; ?></div>
                 <?php endif; ?>
                 
-                <form method="POST" enctype="multipart/form-data" class="post-form">
+                <form method="POST" class="post-form">
                     <div class="form-group">
                         <label for="title">Post Title</label>
-                        <div class="input-with-toolbar">
-                            <div class="text-toolbar">
-                                <button type="button" onclick="formatText('title', 'bold')" title="Bold"><i class="fas fa-bold"></i></button>
-                                <button type="button" onclick="formatText('title', 'italic')" title="Italic"><i class="fas fa-italic"></i></button>
-                                <button type="button" onclick="formatText('title', 'underline')" title="Underline"><i class="fas fa-underline"></i></button>
-                                <button type="button" onclick="insertLink('title')" title="Insert Link"><i class="fas fa-link"></i></button>
-                            </div>
                             <input type="text" id="title" name="title" required 
                                    value="<?php echo htmlspecialchars($post_data['title']); ?>"
                                    maxlength="100">
                             <div class="char-counter">
                                 <span id="title-count">0</span>/100 characters
                             </div>
-                        </div>
                     </div>
                     
                     <div class="form-group">
                         <label for="content">Content</label>
-                        <div class="input-with-toolbar">
-                            <div class="text-toolbar">
-                                <button type="button" onclick="formatText('content', 'bold')" title="Bold"><i class="fas fa-bold"></i></button>
-                                <button type="button" onclick="formatText('content', 'italic')" title="Italic"><i class="fas fa-italic"></i></button>
-                                <button type="button" onclick="formatText('content', 'underline')" title="Underline"><i class="fas fa-underline"></i></button>
-                                <button type="button" onclick="insertLink('content')" title="Insert Link"><i class="fas fa-link"></i></button>
-                                <button type="button" onclick="formatText('content', 'h1')" title="Heading 1">H1</button>
-                                <button type="button" onclick="formatText('content', 'h2')" title="Heading 2">H2</button>
-                                <button type="button" onclick="formatText('content', 'ul')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
-                                <button type="button" onclick="formatText('content', 'ol')" title="Numbered List"><i class="fas fa-list-ol"></i></button>
+                        <div class="bbcode-toolbar">
+                            <button type="button" class="bbcode-btn" onclick="insertBBCode('content', 'b')" title="Bold">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+                                    <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+                                </svg>
+                            </button>
+                            <button type="button" class="bbcode-btn" onclick="insertBBCode('content', 'i')" title="Italic">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="19" y1="4" x2="10" y2="4"></line>
+                                    <line x1="14" y1="20" x2="5" y2="20"></line>
+                                    <line x1="15" y1="4" x2="9" y2="20"></line>
+                                </svg>
+                            </button>
+                            <button type="button" class="bbcode-btn" onclick="insertBBCode('content', 'u')" title="Underline">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path>
+                                    <line x1="4" y1="21" x2="20" y2="21"></line>
+                                </svg>
+                            </button>
+                            <div class="toolbar-separator"></div>
+                            <button type="button" class="bbcode-btn" onclick="insertBBCode('content', 'url')" title="Link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                </svg>
+                            </button>
+                            <button type="button" class="bbcode-btn" onclick="insertBBCode('content', 'img')" title="Image">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21,15 16,10 5,21"></polyline>
+                                </svg>
+                            </button>
+                            <div class="toolbar-separator"></div>
+                            <button type="button" class="bbcode-btn" onclick="insertBBCode('content', 'h1')" title="Heading 1">H1</button>
+                            <button type="button" class="bbcode-btn" onclick="insertBBCode('content', 'h2')" title="Heading 2">H2</button>
+                            <button type="button" class="bbcode-btn" onclick="insertBBCode('content', 'h3')" title="Heading 3">H3</button>
+                            <div class="toolbar-separator"></div>
+                            <button type="button" class="bbcode-btn" onclick="insertBBCode('content', 'ul')" title="Bullet List">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                </svg>
+                            </button>
+                            <button type="button" class="bbcode-btn" onclick="insertBBCode('content', 'ol')" title="Numbered List">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="10" y1="6" x2="21" y2="6"></line>
+                                    <line x1="10" y1="12" x2="21" y2="12"></line>
+                                    <line x1="10" y1="18" x2="21" y2="18"></line>
+                                    <path d="M4 6h1v4"></path>
+                                    <path d="M4 10h2"></path>
+                                    <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
+                                </svg>
+                            </button>
                             </div>
                             <textarea id="content" name="content" rows="15" required maxlength="3000"><?php echo htmlspecialchars($post_data['content']); ?></textarea>
                             <div class="char-counter">
                                 <span id="content-count">0</span>/3000 characters
                             </div>
-                        </div>
-                    </div>
-                    
-                    <?php if($post_data['media_file']): ?>
-                        <div class="form-group">
-                            <label>Current Media</label>
-                            <div class="media-preview">
-                                <?php
-                                $media_path = 'assets/media/' . $post_data['media_file'];
-                                $file_extension = strtolower(pathinfo($post_data['media_file'], PATHINFO_EXTENSION));
-                                
-                                if(in_array($file_extension, ['jpg', 'jpeg', 'png', 'gif'])):
-                                ?>
-                                    <img src="<?php echo $media_path; ?>" alt="Current media" style="max-width: 200px;">
-                                <?php elseif(in_array($file_extension, ['mp4', 'webm'])): ?>
-                                    <video controls style="max-width: 200px;">
-                                        <source src="<?php echo $media_path; ?>" type="video/<?php echo $file_extension; ?>">
-                                    </video>
-                                <?php elseif(in_array($file_extension, ['mp3', 'wav'])): ?>
-                                    <audio controls>
-                                        <source src="<?php echo $media_path; ?>" type="audio/<?php echo $file_extension; ?>">
-                                    </audio>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <div class="form-group">
-                        <label for="media">Update Media (Optional)</label>
-                        <input type="file" id="media" name="media" accept="image/*,video/*,audio/*">
-                        <small>Leave empty to keep current media. Maximum file size: 10MB.</small>
                     </div>
                     
                     <div class="form-actions">
@@ -187,7 +197,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <?php include 'includes/footer.php'; ?>
     
-    <script src="assets/js/text-editor.js"></script>
+    <script src="assets/js/bbcode.js"></script>
     <script>
         // Character counters
         document.getElementById('title').addEventListener('input', function() {

@@ -148,31 +148,23 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                     </div>
                 </header>
                 
-                <?php if($post_data['media_file']): ?>
-                    <div class="post-media">
-                        <?php
-                        $media_path = 'assets/media/' . $post_data['media_file'];
-                        $file_extension = strtolower(pathinfo($post_data['media_file'], PATHINFO_EXTENSION));
-                        
-                        if(in_array($file_extension, ['jpg', 'jpeg', 'png', 'gif'])):
-                        ?>
-                            <img src="<?php echo $media_path; ?>" alt="Post media">
-                        <?php elseif(in_array($file_extension, ['mp4', 'webm'])): ?>
-                            <video controls>
-                                <source src="<?php echo $media_path; ?>" type="video/<?php echo $file_extension; ?>">
-                                Your browser does not support the video tag.
-                            </video>
-                        <?php elseif(in_array($file_extension, ['mp3', 'wav'])): ?>
-                            <audio controls>
-                                <source src="<?php echo $media_path; ?>" type="audio/<?php echo $file_extension; ?>">
-                                Your browser does not support the audio tag.
-                            </audio>
-                        <?php endif; ?>
-                    </div>
-                <?php endif; ?>
-                
                 <div class="post-content">
-                    <?php echo nl2br(htmlspecialchars($post_data['content'])); ?>
+                    <?php 
+                    // Parse BBCode for display
+                    $content = htmlspecialchars($post_data['content']);
+                    // Basic BBCode parsing
+                    $content = preg_replace('/\[b\](.*?)\[\/b\]/i', '<strong>$1</strong>', $content);
+                    $content = preg_replace('/\[i\](.*?)\[\/i\]/i', '<em>$1</em>', $content);
+                    $content = preg_replace('/\[u\](.*?)\[\/u\]/i', '<u>$1</u>', $content);
+                    $content = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$2</a>', $content);
+                    $content = preg_replace('/\[url\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$1</a>', $content);
+                    $content = preg_replace('/\[img\](.*?)\[\/img\]/i', '<img src="$1" alt="Image" style="max-width: 100%; height: auto; border-radius: 8px;">', $content);
+                    $content = preg_replace('/\[h1\](.*?)\[\/h1\]/i', '<h1>$1</h1>', $content);
+                    $content = preg_replace('/\[h2\](.*?)\[\/h2\]/i', '<h2>$1</h2>', $content);
+                    $content = preg_replace('/\[h3\](.*?)\[\/h3\]/i', '<h3>$1</h3>', $content);
+                    $content = nl2br($content);
+                    echo $content;
+                    ?>
                 </div>
             </article>
             
@@ -181,25 +173,39 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                 
                 <?php if(isLoggedIn()): ?>
                     <?php if($_SESSION['status'] !== 'limited'): ?>
-                        <form method="POST" enctype="multipart/form-data" class="comment-form">
+                        <form method="POST" class="comment-form">
                             <div class="form-group">
-                                <div class="input-with-toolbar">
-                                    <div class="text-toolbar">
-                                        <button type="button" onclick="formatText('comment-content', 'bold')" title="Bold"><i class="fas fa-bold"></i></button>
-                                        <button type="button" onclick="formatText('comment-content', 'italic')" title="Italic"><i class="fas fa-italic"></i></button>
-                                        <button type="button" onclick="formatText('comment-content', 'underline')" title="Underline"><i class="fas fa-underline"></i></button>
-                                        <button type="button" onclick="insertLink('comment-content')" title="Insert Link"><i class="fas fa-link"></i></button>
+                                <div class="bbcode-toolbar">
+                                    <button type="button" class="bbcode-btn" onclick="insertBBCode('comment-content', 'b')" title="Bold">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+                                            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="bbcode-btn" onclick="insertBBCode('comment-content', 'i')" title="Italic">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="19" y1="4" x2="10" y2="4"></line>
+                                            <line x1="14" y1="20" x2="5" y2="20"></line>
+                                            <line x1="15" y1="4" x2="9" y2="20"></line>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="bbcode-btn" onclick="insertBBCode('comment-content', 'u')" title="Underline">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path>
+                                            <line x1="4" y1="21" x2="20" y2="21"></line>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="bbcode-btn" onclick="insertBBCode('comment-content', 'url')" title="Link">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                        </svg>
+                                    </button>
                                     </div>
                                     <textarea id="comment-content" name="content" placeholder="Share your thoughts..." required maxlength="1000"><?php echo !isset($_POST['action']) && isset($_POST['content']) ? htmlspecialchars($_POST['content']) : ''; ?></textarea>
                                     <div class="char-counter">
                                         <span id="comment-count">0</span>/1000 characters
                                     </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="comment-media">Attach Media (Optional)</label>
-                                <input type="file" id="comment-media" name="media" accept="image/*,video/*,audio/*">
-                                <small>Maximum file size: 10MB</small>
                             </div>
                             <button type="submit" class="btn btn-primary">Post Comment</button>
                         </form>
@@ -230,16 +236,26 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                                         <a href="profile.php?id=<?php echo $comment_item['user_id']; ?>" class="author-name">
                                             <?php echo htmlspecialchars($comment_item['username']); ?>
                                         </a>
-                                        <time class="comment-date-small"><?php echo formatDate($comment_item['created_at']); ?></time>
+                                        <time class="time-ago" data-datetime="<?php echo $post_data['created_at']; ?>"></time>
                                     </div>
                                 </div>
                                 <div class="comment-actions">
-                                    <?php if(isLoggedIn() && $comment_item['user_id'] == getUserId()): ?>
+                                    <?php if(isLoggedIn() && ($comment_item['user_id'] == getUserId() || isAdmin())): ?>
                                         <div class="edit-delete-actions">
-                                            <button onclick="editComment(<?php echo $comment_item['id']; ?>)" class="btn btn-edit">Edit</button>
-                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this comment?')">
+                                            <?php if($comment_item['user_id'] == getUserId()): ?>
+                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?'); setTimeout(function(){ window.location.href='index.php'; }, 100);">
+                                            <?php endif; ?>
+                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this comment?'); setTimeout(function(){ location.reload(); }, 100);">
                                                 <input type="hidden" name="action" value="delete_comment">
                                                 <input type="hidden" name="comment_id" value="<?php echo $comment_item['id']; ?>">
+                                                <button type="submit" class="btn btn-delete">Delete</button>
+                                            </form>
+                                        </div>
+                                    <?php elseif(isLoggedIn() && isAdmin()): ?>
+                                        <div class="edit-delete-actions">
+                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?'); setTimeout(function(){ window.location.href='index.php'; }, 100);">
+                                                <input type="hidden" name="action" value="delete_post">
+                                                <input type="hidden" name="post_id" value="<?php echo $post_data['id']; ?>">
                                                 <button type="submit" class="btn btn-delete">Delete</button>
                                             </form>
                                         </div>
@@ -249,41 +265,31 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                                 </div>
                             </div>
                             
-                            <?php if($comment_item['media_file']): ?>
-                                <div class="comment-media">
-                                    <?php
-                                    $media_path = 'assets/media/' . $comment_item['media_file'];
-                                    $file_extension = strtolower(pathinfo($comment_item['media_file'], PATHINFO_EXTENSION));
-                                    
-                                    if(in_array($file_extension, ['jpg', 'jpeg', 'png', 'gif'])):
-                                    ?>
-                                        <img src="<?php echo $media_path; ?>" alt="Comment media">
-                                    <?php elseif(in_array($file_extension, ['mp4', 'webm'])): ?>
-                                        <video controls>
-                                            <source src="<?php echo $media_path; ?>" type="video/<?php echo $file_extension; ?>">
-                                        </video>
-                                    <?php elseif(in_array($file_extension, ['mp3', 'wav'])): ?>
-                                        <audio controls>
-                                            <source src="<?php echo $media_path; ?>" type="audio/<?php echo $file_extension; ?>">
-                                        </audio>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endif; ?>
-                            
                             <div class="comment-content">
-                                <?php echo nl2br(htmlspecialchars($comment_item['content'])); ?>
+                                <?php 
+                                // Parse BBCode for display
+                                $content = htmlspecialchars($comment_item['content']);
+                                // Basic BBCode parsing
+                                $content = preg_replace('/\[b\](.*?)\[\/b\]/i', '<strong>$1</strong>', $content);
+                                $content = preg_replace('/\[i\](.*?)\[\/i\]/i', '<em>$1</em>', $content);
+                                $content = preg_replace('/\[u\](.*?)\[\/u\]/i', '<u>$1</u>', $content);
+                                $content = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$2</a>', $content);
+                                $content = preg_replace('/\[url\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$1</a>', $content);
+                                $content = preg_replace('/\[img\](.*?)\[\/img\]/i', '<img src="$1" alt="Image" style="max-width: 100%; height: auto; border-radius: 8px;">', $content);
+                                $content = preg_replace('/\[h1\](.*?)\[\/h1\]/i', '<h1>$1</h1>', $content);
+                                $content = preg_replace('/\[h2\](.*?)\[\/h2\]/i', '<h2>$1</h2>', $content);
+                                $content = preg_replace('/\[h3\](.*?)\[\/h3\]/i', '<h3>$1</h3>', $content);
+                                $content = nl2br($content);
+                                echo $content;
+                                ?>
                             </div>
                             
                             <div id="edit-form-<?php echo $comment_item['id']; ?>" class="edit-form" style="display: none;">
-                                <form method="POST" enctype="multipart/form-data">
+                                <form method="POST">
                                     <input type="hidden" name="action" value="edit_comment">
                                     <input type="hidden" name="comment_id" value="<?php echo $comment_item['id']; ?>">
                                     <div class="form-group">
                                         <textarea name="content" required maxlength="1000"><?php echo htmlspecialchars($comment_item['content']); ?></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <input type="file" name="media" accept="image/*,video/*,audio/*">
-                                        <small>Leave empty to keep current media</small>
                                     </div>
                                     <div class="form-actions">
                                         <button type="submit" class="btn btn-primary">Update Comment</button>
@@ -300,8 +306,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
 
     <?php include 'includes/footer.php'; ?>
     
-    <script src="assets/js/main.js"></script>
-    <script src="assets/js/text-editor.js"></script>
+    <script src="assets/js/bbcode.js"></script>
+    <script src="assets/js/time-ago.js"></script>
     <script>
         // Character counter for comment
         document.getElementById('comment-content').addEventListener('input', function() {

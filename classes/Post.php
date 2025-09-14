@@ -8,26 +8,24 @@ class Post {
     }
 
     public function create($user_id, $title, $content) {
-    $query = "INSERT INTO posts (user_id, title, content, status, media_file) 
-              VALUES (:user_id, :title, :content, 'draft', :media_file)";
+    $query = "INSERT INTO posts (user_id, title, content, status) 
+              VALUES (:user_id, :title, :content, 'draft')";
     $stmt = $this->conn->prepare($query);
     return $stmt->execute([
         ':user_id' => $user_id,
         ':title' => $title,
-        ':content' => $content,
-        ':media_file' => null
+        ':content' => $content
     ]);
     }
 
-    public function createWithMedia($user_id, $title, $content, $media_file = null) {
-        $query = "INSERT INTO posts (user_id, title, content, status, media_file) 
-                  VALUES (:user_id, :title, :content, 'draft', :media_file)";
+    public function createWithMedia($user_id, $title, $content) {
+        $query = "INSERT INTO posts (user_id, title, content, status) 
+                  VALUES (:user_id, :title, :content, 'draft')";
         $stmt = $this->conn->prepare($query);
         return $stmt->execute([
             ':user_id' => $user_id,
             ':title' => $title,
-            ':content' => $content,
-            ':media_file' => $media_file
+            ':content' => $content
         ]);
     }
 
@@ -62,19 +60,19 @@ class Post {
         return $result['total'];
     }
 
-    public function update($id, $title, $content, $media_file = null) {
+    public function update($id, $title, $content) {
         // When updating, set status back to draft for admin review
         $query = "UPDATE " . $this->table_name . " 
-                  SET title = ?, content = ?, media_file = ?, status = 'draft', updated_at = NOW() 
+                  SET title = ?, content = ?, status = 'draft', updated_at = NOW() 
                   WHERE id = ?";
         $stmt = $this->conn->prepare($query);
-        return $stmt->execute([$title, $content, $media_file, $id]);
+        return $stmt->execute([$title, $content, $id]);
     }
 
 public function getPublishedPosts($user_id, $limit = 10, $offset = 0) {
     // Handle case when user is not logged in
     if ($user_id === null) {
-        $query = "SELECT p.*, u.username, u.avatar, p.media_file 
+        $query = "SELECT p.*, u.username, u.avatar 
                   FROM " . $this->table_name . " p
                   JOIN users u ON p.user_id = u.id
                   WHERE p.status = 'published' 
@@ -90,7 +88,7 @@ public function getPublishedPosts($user_id, $limit = 10, $offset = 0) {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
-    $query = "SELECT p.*, u.username, u.avatar, p.media_file 
+    $query = "SELECT p.*, u.username, u.avatar 
               FROM " . $this->table_name . " p
               JOIN users u ON p.user_id = u.id
               LEFT JOIN reports r 
@@ -114,7 +112,7 @@ public function getPublishedPosts($user_id, $limit = 10, $offset = 0) {
 
 
     public function getPostById($id) {
-        $query = "SELECT p.*, u.username, u.avatar, p.media_file 
+        $query = "SELECT p.*, u.username, u.avatar 
                   FROM " . $this->table_name . " p 
                   JOIN users u ON p.user_id = u.id 
                   WHERE p.id = ?";
@@ -126,7 +124,7 @@ public function getPublishedPosts($user_id, $limit = 10, $offset = 0) {
 public function getUserPosts($profile_id, $viewer_id = null) {
     if ($viewer_id !== null && $viewer_id != $profile_id) {
         // Hide posts reported by the viewer
-        $query = "SELECT p.*, p.media_file
+        $query = "SELECT p.*
                   FROM " . $this->table_name . " p
                   LEFT JOIN reports r 
                     ON r.reported_type = 'post'
@@ -140,7 +138,7 @@ public function getUserPosts($profile_id, $viewer_id = null) {
         $stmt->bindParam(':profile_id', $profile_id, PDO::PARAM_INT);
     } else {
         // Show all posts (own profile or no viewer specified)
-        $query = "SELECT *, media_file FROM " . $this->table_name . " 
+        $query = "SELECT * FROM " . $this->table_name . " 
                   WHERE user_id = :profile_id 
                   ORDER BY created_at DESC";
         $stmt = $this->conn->prepare($query);
@@ -159,7 +157,7 @@ public function getUserPosts($profile_id, $viewer_id = null) {
     }
 
 public function getPendingPosts() {
-    $query = "SELECT p.*, u.username, p.media_file 
+    $query = "SELECT p.*, u.username 
               FROM posts p 
               JOIN users u ON p.user_id = u.id 
               WHERE p.status = 'draft'

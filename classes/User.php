@@ -76,9 +76,48 @@ public function getUserById($id) {
     }
 
     public function limitUser($id, $status) {
+        // Get current user data for notification
+        $current_user = $this->getUserById($id);
+        
         $query = "UPDATE " . $this->table_name . " SET status = ? WHERE id = ?";
         $stmt = $this->conn->prepare($query);
-        return $stmt->execute([$status, $id]);
+        $result = $stmt->execute([$status, $id]);
+        
+        if ($result) {
+            // Create notification
+            require_once 'Notification.php';
+            $notification = new Notification($this->conn);
+            
+            $title = '';
+            $message = '';
+            $type = '';
+            
+            switch($status) {
+                case 'limited':
+                    $title = 'Account Limited';
+                    $message = 'Your account has been limited. Some features may be unavailable.';
+                    $type = 'account_limited';
+                    break;
+                case 'banned':
+                    $title = 'Account Banned';
+                    $message = 'Your account has been banned due to violations of our community guidelines.';
+                    $type = 'account_banned';
+                    break;
+                case 'active':
+                    if ($current_user['status'] !== 'active') {
+                        $title = 'Account Restored';
+                        $message = 'Your account has been restored. You now have full access to all features.';
+                        $type = 'account_restored';
+                    }
+                    break;
+            }
+            
+            if ($title && $message && $type) {
+                $notification->create($id, $type, $title, $message);
+            }
+        }
+        
+        return $result;
     }
 
   public function getAllUsers() {

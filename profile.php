@@ -56,6 +56,10 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
                     <a href="index.php" class="btn btn-primary">← Back to Home</a>
                 </div>
             <?php else: ?>
+                <div class="profile-banner">
+                    <img src="assets/images/banners/<?php echo htmlspecialchars($profile_data['banner'] ?? 'default-banner.jpg'); ?>" alt="Profile Banner">
+                </div>
+                
                 <?php if($is_limited && $is_own_profile): ?>
                     <div class="profile-restricted">
                         <h3>Account Status: <?php echo ucfirst($profile_data['status']); ?></h3>
@@ -101,42 +105,51 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
                                 <p>No posts yet.</p>
                             </div>
                         <?php else: ?>
-                            <div class="posts-list">
-                                <?php foreach($user_posts as $post_item): ?>
-                                    <?php if($post_item['status'] === 'published' || $is_own_profile): ?>
-                                        <article class="post-card">
-                                            <h3>
-                                                <?php if($post_item['status'] === 'published'): ?>
-                                                    <a href="post.php?id=<?php echo $post_item['id']; ?>">
-                                                        <?php echo htmlspecialchars($post_item['title']); ?>
-                                                    </a>
-                                                <?php else: ?>
-                                                    <?php echo htmlspecialchars($post_item['title']); ?>
+                            <div class="profile-posts-list" id="profilePostsList">
+                                <?php 
+                                $displayed_posts = 0;
+                                foreach($user_posts as $post_item): 
+                                    if($post_item['status'] === 'published' || $is_own_profile):
+                                        $displayed_posts++;
+                                        if($displayed_posts > 6) break;
+                                ?>
+                                        <div class="profile-post-card" onclick="<?php echo $post_item['status'] === 'published' ? "window.location.href='post.php?id=" . $post_item['id'] . "'" : ''; ?>">
+                                            <div class="profile-post-title">
+                                                <?php echo htmlspecialchars($post_item['title']); ?>
+                                                <?php if($post_item['status'] !== 'published'): ?>
                                                     <span class="status-badge status-<?php echo $post_item['status']; ?>">
                                                         <?php echo ucfirst($post_item['status']); ?>
                                                     </span>
                                                 <?php endif; ?>
-                                            </h3>
-                                            <div class="post-excerpt">
+                                            </div>
+                                            <div class="profile-post-excerpt">
                                                 <?php echo substr(strip_tags($post_item['content']), 0, 150) . '...'; ?>
                                             </div>
-                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                                                <time class="post-date-small"><?php echo formatDate($post_item['created_at']); ?></time>
-                                                <?php if($is_own_profile && $post_item['status'] === 'published'): ?>
-                                                    <div class="edit-delete-actions">
-                                                        <a href="edit-post.php?id=<?php echo $post_item['id']; ?>" class="btn btn-edit btn-sm">Edit</a>
-                                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?')">
+                                            <div class="profile-post-meta">
+                                                <time class="time-ago" data-datetime="<?php echo $post_item['created_at']; ?>"></time>
+                                                <?php if($is_own_profile): ?>
+                                                    <div class="profile-post-actions" onclick="event.stopPropagation();">
+                                                        <a href="edit-post.php?id=<?php echo $post_item['id']; ?>" class="btn btn-edit">Edit</a>
+                                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?'); setTimeout(function(){ location.reload(); }, 100);">
                                                             <input type="hidden" name="action" value="delete_post">
                                                             <input type="hidden" name="post_id" value="<?php echo $post_item['id']; ?>">
-                                                            <button type="submit" class="btn btn-delete btn-sm">Delete</button>
+                                                            <button type="submit" class="btn btn-delete">Delete</button>
                                                         </form>
                                                     </div>
                                                 <?php endif; ?>
                                             </div>
-                                        </article>
+                                        </div>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             </div>
+                            
+                            <?php if(count(array_filter($user_posts, function($post) use ($is_own_profile) {
+                                return $post['status'] === 'published' || $is_own_profile;
+                            })) > 6): ?>
+                                <div class="show-more-container">
+                                    <button class="show-more-btn" onclick="loadMoreProfilePosts()">Show More Posts</button>
+                                </div>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -146,7 +159,37 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
 
     <?php include 'includes/footer.php'; ?>
     
+    <script src="assets/js/time-ago.js"></script>
     <script>
+        let profilePostsPage = 1;
+        
+        function loadMoreProfilePosts() {
+            profilePostsPage++;
+            fetch(`load-more-profile-posts.php?user_id=<?php echo $profile_id; ?>&page=${profilePostsPage}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const container = document.getElementById('profilePostsList');
+                        container.insertAdjacentHTML('beforeend', data.html);
+                        
+                        if (!data.has_more) {
+                            document.querySelector('.show-more-btn').style.display = 'none';
+                        }
+                        
+                        // Reinitialize time ago for new elements
+                        const newTimeElements = container.querySelectorAll('.time-ago:not([data-initialized])');
+                        newTimeElements.forEach(element => {
+                            const dateTime = element.getAttribute('data-datetime');
+                            if (dateTime) {
+                                element.textContent = timeAgo(dateTime);
+                                element.title = formatDateTime(dateTime);
+                                element.setAttribute('data-initialized', 'true');
+                            }
+                        });
+                    }
+                });
+        }
+        
         // Handle post deletion
         <?php if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_post' && $is_own_profile): ?>
             <?php
