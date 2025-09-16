@@ -1,9 +1,21 @@
 <?php
 require_once (strpos($_SERVER['PHP_SELF'], 'admin') !== false ? '../classes/Notification.php' : 'classes/Notification.php');
+require_once (strpos($_SERVER['PHP_SELF'], 'admin') !== false ? '../classes/User.php' : 'classes/User.php');
+require_once (strpos($_SERVER['PHP_SELF'], 'admin') !== false ? '../classes/User.php' : 'classes/User.php');
 
 if(isLoggedIn()) {
     $notification = new Notification($db);
     $unread_count = $notification->getUnreadCount(getUserId());
+    
+    // Get user avatar
+    $user = new User($db);
+    $user_data = $user->getUserById(getUserId());
+    $user_avatar = $user_data['avatar'] ?? 'default-avatar.png';
+    
+    // Get user avatar
+    $user = new User($db);
+    $user_data = $user->getUserById(getUserId());
+    $user_avatar = $user_data['avatar'] ?? 'default-avatar.png';
 }
 ?>
 
@@ -22,7 +34,6 @@ if(isLoggedIn()) {
                         <li><a href="<?php echo isAdmin() ? '../index.php' : 'index.php'; ?>">Home</a></li>
                         <?php if(isLoggedIn()): ?>
                             <li><a href="<?php echo isAdmin() ? '../create-post.php' : 'create-post.php'; ?>">Write</a></li>
-                            <li><a href="<?php echo isAdmin() ? '../profile.php?id=' . getUserId() : 'profile.php?id=' . getUserId(); ?>">Profile</a></li>
                             <?php if(isAdmin()): ?>
                                 <li><a href="<?php echo strpos($_SERVER['PHP_SELF'], 'admin') !== false ? 'index.php' : 'admin/index.php'; ?>">Admin</a></li>
                             <?php endif; ?>
@@ -59,18 +70,13 @@ if(isLoggedIn()) {
                         </div>
                         
                         <div class="user-menu">
-                            <div class="user-avatar">
-                                <img src="<?php echo isAdmin() ? '../assets/images/avatars/' : 'assets/images/avatars/'; ?><?php echo htmlspecialchars($_SESSION['avatar'] ?? 'default-avatar.png'); ?>" alt="Avatar">
+                            <div class="user-avatar" onclick="window.location.href='<?php echo isAdmin() ? '../profile.php?id=' . getUserId() : 'profile.php?id=' . getUserId(); ?>'">
+                                <img src="<?php echo isAdmin() ? '../assets/images/avatars/' : 'assets/images/avatars/'; ?><?php echo htmlspecialchars($user_avatar); ?>" alt="Avatar">
                             </div>
-                            <div class="user-info">
-                                <span class="username"><?php echo htmlspecialchars($_SESSION['username']); ?></span>
-                                <?php if($_SESSION['status'] === 'limited'): ?>
-                                    <span class="status-badge status-limited">Limited</span>
-                                <?php endif; ?>
-                            </div>
-                            <div class="user-dropdown">
-                                <a href="<?php echo isAdmin() ? '../auth/logout.php' : 'auth/logout.php'; ?>">Logout</a>
-                            </div>
+                            <?php if($_SESSION['status'] === 'limited'): ?>
+                                <span class="status-badge status-limited">Limited</span>
+                            <?php endif; ?>
+                            <button onclick="window.location.href='<?php echo isAdmin() ? '../auth/logout.php' : 'auth/logout.php'; ?>'" class="logout-btn">Logout</button>
                         </div>
                     </div>
                 <?php else: ?>
@@ -163,8 +169,4 @@ document.addEventListener('click', function(event) {
 <?php endif; ?>
 
 <script src="<?php echo isAdmin() ? '../' : ''; ?>assets/js/time-ago.js"></script>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
 </header>

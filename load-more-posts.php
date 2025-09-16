@@ -23,7 +23,7 @@ foreach($posts as $post_item) {
                      class="avatar">
                 <div>
                     <h4>' . htmlspecialchars($post_item['username']) . '</h4>
-                    <time class="post-date-small">' . formatDate($post_item['created_at']) . '</time>
+                    <time class="time-ago" data-datetime="' . $post_item['created_at'] . '" title="' . formatDate($post_item['created_at']) . '"></time>
                 </div>
             </div>
         </div>
@@ -35,7 +35,38 @@ foreach($posts as $post_item) {
         </h2>
         
         <div class="post-excerpt">
-            ' . substr(strip_tags($post_item['content']), 0, 200) . '...
+            ';
+    
+    // Parse BBCode for preview and limit to 40-50 words
+    $content = $post_item['content'];
+    // Remove BBCode tags for preview
+    $content = preg_replace('/\[img\](.*?)\[\/img\]/i', '[Image]', $content);
+    $content = preg_replace('/\[b\](.*?)\[\/b\]/i', '$1', $content);
+    $content = preg_replace('/\[i\](.*?)\[\/i\]/i', '$1', $content);
+    $content = preg_replace('/\[u\](.*?)\[\/u\]/i', '$1', $content);
+    $content = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/i', '$2', $content);
+    $content = preg_replace('/\[url\](.*?)\[\/url\]/i', '$1', $content);
+    $content = preg_replace('/\[h[1-3]\](.*?)\[\/h[1-3]\]/i', '$1', $content);
+    $content = preg_replace('/\[centre\](.*?)\[\/centre\]/i', '$1', $content);
+    $content = preg_replace('/\[center\](.*?)\[\/center\]/i', '$1', $content);
+    $content = preg_replace('/\[box\](.*?)\[\/box\]/i', '$1', $content);
+    $content = preg_replace('/\[color=(.*?)\](.*?)\[\/color\]/i', '$2', $content);
+    $content = preg_replace('/\[notice\](.*?)\[\/notice\]/i', '$1', $content);
+    $content = preg_replace('/\[ul\](.*?)\[\/ul\]/is', '$1', $content);
+    $content = preg_replace('/\[ol\](.*?)\[\/ol\]/is', '$1', $content);
+    $content = preg_replace('/\[li\](.*?)\[\/li\]/i', '• $1', $content);
+    $content = strip_tags($content);
+    
+    // Limit to 40-50 words
+    $words = explode(' ', $content);
+    if (count($words) > 45) {
+        $words = array_slice($words, 0, 45);
+        $html .= implode(' ', $words) . '...';
+    } else {
+        $html .= $content;
+    }
+    
+    $html .= '
         </div>
         
         <div class="post-actions">

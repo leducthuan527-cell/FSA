@@ -1,5 +1,104 @@
 // Main JavaScript functionality
 
+// Initialize hero background on all pages
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hero background to all pages except index
+    if (!document.body.classList.contains('hero-page')) {
+        addHeroBackground();
+    }
+    
+    // Initialize other functionality
+    initializeTextareas();
+    initializeSmoothScrolling();
+    initializeFormValidation();
+    initializeAlerts();
+    initializeCharacterCounters();
+    initializeDeleteConfirmations();
+    initializeFormLoading();
+});
+
+function addHeroBackground() {
+    const heroBackground = document.createElement('div');
+    heroBackground.className = 'hero-background';
+    heroBackground.innerHTML = `
+        <div class="hero-background-gradient"></div>
+        <div class="hero-shapes-container">
+            <div class="elegant-shape shape-1" style="--rotate: 12deg;">
+                <div class="elegant-shape-inner">
+                    <div class="elegant-shape-element"></div>
+                </div>
+            </div>
+            <div class="elegant-shape shape-2" style="--rotate: -15deg;">
+                <div class="elegant-shape-inner">
+                    <div class="elegant-shape-element"></div>
+                </div>
+            </div>
+            <div class="elegant-shape shape-3" style="--rotate: -8deg;">
+                <div class="elegant-shape-inner">
+                    <div class="elegant-shape-element"></div>
+                </div>
+            </div>
+            <div class="elegant-shape shape-4" style="--rotate: 20deg;">
+                <div class="elegant-shape-inner">
+                    <div class="elegant-shape-element"></div>
+                </div>
+            </div>
+            <div class="elegant-shape shape-5" style="--rotate: -25deg;">
+                <div class="elegant-shape-inner">
+                    <div class="elegant-shape-element"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(heroBackground);
+}
+
+// AJAX Delete functionality
+function deletePostAjax(postId, callback) {
+    const formData = new FormData();
+    formData.append('action', 'delete_post');
+    formData.append('post_id', postId);
+    
+    fetch('profile.php?id=' + getCurrentUserId(), {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        if (callback) callback(true);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        if (callback) callback(false);
+    });
+}
+
+function getCurrentUserId() {
+    // Extract user ID from URL or other source
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('id');
+}
+
+// Password visibility toggle
+function togglePasswordVisibility(inputId, toggleBtn) {
+    const input = document.getElementById(inputId);
+    const icon = toggleBtn.querySelector('svg');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.innerHTML = `
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+        `;
+    } else {
+        input.type = 'password';
+        icon.innerHTML = `
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+        `;
+    }
+}
+
 // Report content functionality
 function reportContent(type, id) {
     const reason = prompt('Please provide a reason for reporting this ' + type + ':');
@@ -35,7 +134,7 @@ function reportContent(type, id) {
 }
 
 // Auto-resize textareas
-document.addEventListener('DOMContentLoaded', function() {
+function initializeTextareas() {
     const textareas = document.querySelectorAll('textarea');
     textareas.forEach(textarea => {
         textarea.addEventListener('input', function() {
@@ -43,8 +142,10 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.height = this.scrollHeight + 'px';
         });
     });
-    
+}
+
     // Smooth scrolling for anchor links
+function initializeSmoothScrolling() {
     const anchorLinks = document.querySelectorAll('a[href^="#"]');
     anchorLinks.forEach(link => {
         link.addEventListener('click', function(e) {
@@ -58,8 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+}
+
     // Form validation
+function initializeFormValidation() {
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
@@ -81,8 +184,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+}
+
     // Auto-hide alerts after 5 seconds
+function initializeAlerts() {
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {
         setTimeout(() => {
@@ -92,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300);
         }, 5000);
     });
-});
+}
 
 // Character counter for textareas
 function addCharacterCounter(textarea, maxLength) {
@@ -122,7 +227,7 @@ function addCharacterCounter(textarea, maxLength) {
 }
 
 // Initialize character counters
-document.addEventListener('DOMContentLoaded', function() {
+function initializeCharacterCounters() {
     const postContent = document.querySelector('#content');
     if (postContent) {
         addCharacterCounter(postContent, 5000);
@@ -132,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
     commentTextareas.forEach(textarea => {
         addCharacterCounter(textarea, 1000);
     });
-});
+}
 
 // Image preview for avatar uploads
 function previewImage(input, previewId) {
@@ -151,7 +256,7 @@ function confirmAction(message) {
 }
 
 // Add confirmation to delete buttons
-document.addEventListener('DOMContentLoaded', function() {
+function initializeDeleteConfirmations() {
     const deleteButtons = document.querySelectorAll('.btn-danger');
     deleteButtons.forEach(button => {
         if (button.textContent.toLowerCase().includes('delete') || 
@@ -163,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
-});
+}
 
 // Loading states for forms
 function showLoading(form) {
@@ -183,7 +288,7 @@ function hideLoading(form) {
 }
 
 // Add loading states to forms
-document.addEventListener('DOMContentLoaded', function() {
+function initializeFormLoading() {
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         const submitButton = form.querySelector('button[type="submit"]');
@@ -195,4 +300,4 @@ document.addEventListener('DOMContentLoaded', function() {
             showLoading(form);
         });
     });
-});
+}

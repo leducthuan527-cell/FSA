@@ -8,25 +8,43 @@ class Post {
     }
 
     public function create($user_id, $title, $content) {
-    $query = "INSERT INTO posts (user_id, title, content, status) 
-              VALUES (:user_id, :title, :content, 'draft')";
-    $stmt = $this->conn->prepare($query);
-    return $stmt->execute([
-        ':user_id' => $user_id,
-        ':title' => $title,
-        ':content' => $content
-    ]);
+        $query = "INSERT INTO posts (user_id, title, content, status) 
+                  VALUES (:user_id, :title, :content, 'draft')";
+        $stmt = $this->conn->prepare($query);
+        $result = $stmt->execute([
+            ':user_id' => $user_id,
+            ':title' => $title,
+            ':content' => $content
+        ]);
+        
+        if ($result) {
+            // Create notification for post submission
+            require_once 'Notification.php';
+            $notification = new Notification($this->conn);
+            $notification->createPostSubmittedNotification($user_id, $title);
+        }
+        
+        return $result;
     }
 
     public function createWithMedia($user_id, $title, $content) {
         $query = "INSERT INTO posts (user_id, title, content, status) 
                   VALUES (:user_id, :title, :content, 'draft')";
         $stmt = $this->conn->prepare($query);
-        return $stmt->execute([
+        $result = $stmt->execute([
             ':user_id' => $user_id,
             ':title' => $title,
             ':content' => $content
         ]);
+        
+        if ($result) {
+            // Create notification for post submission
+            require_once 'Notification.php';
+            $notification = new Notification($this->conn);
+            $notification->createPostSubmittedNotification($user_id, $title);
+        }
+        
+        return $result;
     }
 
     public function getTotalPublishedPosts($user_id) {
@@ -157,7 +175,7 @@ public function getUserPosts($profile_id, $viewer_id = null) {
     }
 
 public function getPendingPosts() {
-    $query = "SELECT p.*, u.username 
+    $query = "SELECT p.*, u.username, u.avatar 
               FROM posts p 
               JOIN users u ON p.user_id = u.id 
               WHERE p.status = 'draft'
@@ -169,9 +187,21 @@ public function getPendingPosts() {
 
 
     public function delete($id) {
+        // Get post details for notification before deletion
+        $post_data = $this->getPostById($id);
+        
         $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
         $stmt = $this->conn->prepare($query);
-        return $stmt->execute([$id]);
+        $result = $stmt->execute([$id]);
+        
+        if ($result && $post_data) {
+            // Create notification for post deletion
+            require_once 'Notification.php';
+            $notification = new Notification($this->conn);
+            $notification->createPostDeletedNotification($post_data['user_id'], $post_data['title']);
+        }
+        
+        return $result;
     }
 
     public function canUserEdit($post_id, $user_id) {

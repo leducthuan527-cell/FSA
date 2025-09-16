@@ -198,6 +198,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php include 'includes/footer.php'; ?>
     
     <script src="assets/js/bbcode.js"></script>
+    <script src="assets/js/main.js"></script>
     <script>
         // Character counters
         document.getElementById('title').addEventListener('input', function() {

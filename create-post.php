@@ -26,40 +26,10 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif(strlen($title) > 100) {
         $error = 'Title must be 100 characters or less';
     } elseif(strlen($content) > 3000) {
-        $error = 'Content must be 3000 characters or less';
-    } else {
-        $media_file = null;
-        
-        // Handle media upload
-        if(isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
-            $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/webm', 'audio/mp3', 'audio/wav'];
-            $file_type = $_FILES['media']['type'];
-            $file_size = $_FILES['media']['size'];
-            
-            if($file_size > 10 * 1024 * 1024) { // 10MB limit
-                $error = 'File size must be less than 10MB';
-            } elseif(in_array($file_type, $allowed_types)) {
-                $file_extension = pathinfo($_FILES['media']['name'], PATHINFO_EXTENSION);
-                $new_filename = 'post_media_' . getUserId() . '_' . time() . '.' . $file_extension;
-                $upload_path = 'assets/media/' . $new_filename;
-                
-                if(!is_dir('assets/media')) {
-                    mkdir('assets/media', 0755, true);
-                }
-                
-                if(move_uploaded_file($_FILES['media']['tmp_name'], $upload_path)) {
-                    $media_file = $new_filename;
-                } else {
-                    $error = 'Failed to upload media file';
-                }
-            } else {
-                $error = 'Invalid file type. Only images, videos, and audio files are allowed';
-            }
-        }
-        
+        $error = 'Content must be 3000 characters or less';       
         if(!$error) {
         $post = new Post($db);
-            if($post->createWithMedia(getUserId(), $title, $content, $media_file)) {
+            if($post->createWithMedia(getUserId(), $title, $content)) {
             $success = 'Post submitted for review. It will be published after admin approval.';
                 // Clear form data
                 $_POST = array();
@@ -97,7 +67,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="alert alert-success"><?php echo $success; ?></div>
                 <?php endif; ?>
                 
-                <form method="POST" class="post-form">
                 <form method="POST" class="post-form">
                     <div class="form-group">
                         <label for="title">Post Title</label>
@@ -190,6 +159,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     <script src="assets/js/bbcode.js"></script>
     <script src="assets/js/time-ago.js"></script>
+    <script src="assets/js/main.js"></script>
     <script>
         // Character counters
         document.getElementById('title').addEventListener('input', function() {

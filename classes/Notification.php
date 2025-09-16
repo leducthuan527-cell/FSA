@@ -12,6 +12,42 @@ class Notification {
         $stmt = $this->conn->prepare($query);
         return $stmt->execute([$user_id, $type, $title, $message]);
     }
+    
+    public function createPostSubmittedNotification($user_id, $post_title) {
+        return $this->create(
+            $user_id,
+            'post_submitted',
+            'Post Submitted for Review',
+            "Your post \"$post_title\" has been submitted for admin review."
+        );
+    }
+    
+    public function createCommentSubmittedNotification($user_id, $post_title) {
+        return $this->create(
+            $user_id,
+            'comment_submitted',
+            'Comment Submitted for Review',
+            "Your comment on \"$post_title\" has been submitted for admin review."
+        );
+    }
+    
+    public function createPostDeletedNotification($user_id, $post_title) {
+        return $this->create(
+            $user_id,
+            'post_deleted',
+            'Post Removed',
+            "Your post \"$post_title\" has been removed by an administrator."
+        );
+    }
+    
+    public function createCommentDeletedNotification($user_id, $post_title) {
+        return $this->create(
+            $user_id,
+            'comment_deleted',
+            'Comment Removed',
+            "Your comment on \"$post_title\" has been removed by an administrator."
+        );
+    }
 
     public function getUserNotifications($user_id, $limit = 12, $offset = 0) {
         $query = "SELECT * FROM " . $this->table_name . " 

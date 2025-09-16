@@ -35,6 +35,7 @@ public function getUserById($id) {
     $query = "SELECT u.id, u.username, u.email, u.role, u.status, 
                      u.created_at, u.avatar,
                      COALESCE(u.gender, 'prefer_not_to_say') AS gender,
+                     COALESCE(u.description, 'Nothing here~') AS description,
                      COUNT(DISTINCT p.id) AS total_posts,
                      COUNT(DISTINCT c.id) AS total_comments
               FROM users u
@@ -114,6 +115,11 @@ public function getUserById($id) {
             
             if ($title && $message && $type) {
                 $notification->create($id, $type, $title, $message);
+            }
+            
+            // Update session if limiting current user
+            if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $id) {
+                $_SESSION['status'] = $status;
             }
         }
         

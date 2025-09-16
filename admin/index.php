@@ -118,13 +118,33 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php foreach($pending_posts as $post_item): ?>
                             <div class="admin-item">
                                 <div class="item-header">
-                                    <h3><?php echo htmlspecialchars($post_item['title']); ?></h3>
-                                    <span class="author">by <?php echo htmlspecialchars($post_item['username']); ?></span>
+                                    <div class="item-header-left">
+                                        <div class="author-info-admin">
+                                        <img src="../assets/images/avatars/<?php echo htmlspecialchars($post_item['avatar']); ?>" alt="<?php echo htmlspecialchars($post_item['username']); ?>">
+                                            <div class="author-details">
+                                                <h4><?php echo htmlspecialchars($post_item['username']); ?></h4>
+                                                <span class="author-role">Author</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="item-header-right">
+                                        <span>Submitted: <?php echo formatDate($post_item['created_at']); ?></span>
+                                    </div>
                                 </div>
+                                <h3><?php echo htmlspecialchars($post_item['title']); ?></h3>
+                                <div class="spacer"></div>
                                 <div class="item-content">
                                     <?php echo substr(strip_tags($post_item['content']), 0, 200) . '...'; ?>
                                 </div>
                                 <div class="item-actions">
+                                    <div class="item-actions">
+                                    <button class="btn-view-details"
+                                    data-id="<?php echo $post_item['id']; ?>"
+                                    data-title="<?php echo htmlspecialchars($post_item['title'], ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-content="<?php echo htmlspecialchars($post_item['content'], ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-author="<?php echo htmlspecialchars($post_item['username'], ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-date="<?php echo htmlspecialchars(formatDate($post_item['created_at']), ENT_QUOTES, 'UTF-8'); ?>">View Details</button>
+                                </div>
                                     <form method="POST" style="display: inline;">
                                         <input type="hidden" name="action" value="approve_post">
                                         <input type="hidden" name="id" value="<?php echo $post_item['id']; ?>">
@@ -151,13 +171,31 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php foreach($pending_comments as $comment_item): ?>
                             <div class="admin-item">
                                 <div class="item-header">
-                                    <span class="author">Comment by <?php echo htmlspecialchars($comment_item['username']); ?></span>
-                                    <span class="post-title">on "<?php echo htmlspecialchars($comment_item['post_title']); ?>"</span>
+                                    <div class="item-header-left">
+                                        <div class="author-info-admin">
+                                            <img src="../assets/images/avatars/<?php echo htmlspecialchars($comment_item['avatar']); ?>" alt="<?php echo htmlspecialchars($comment_item['username']); ?>">
+                                            <div class="author-details">
+                                                <h4><?php echo htmlspecialchars($comment_item['username']); ?></h4>
+                                                <span class="author-role">Commenter</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="item-header-right">
+                                        <span>Submitted: <?php echo formatDate($comment_item['created_at']); ?></span>
+                                    </div>
                                 </div>
+                                <h3>Comment on "<?php echo htmlspecialchars($comment_item['post_title']); ?>"</h3>
+                                <div class="spacer"></div>
                                 <div class="item-content">
-                                    <?php echo htmlspecialchars($comment_item['content']); ?>
+                                    <?php echo htmlspecialchars($comment_item['content'], ENT_QUOTES, 'UTF-8'); ?>
                                 </div>
                                 <div class="item-actions">
+                                 <button class="btn-view-details"
+                                 data-content="<?php echo htmlspecialchars($comment_item['content'], ENT_QUOTES, 'UTF-8'); ?>"
+                                 data-author="<?php echo htmlspecialchars($comment_item['username'], ENT_QUOTES, 'UTF-8'); ?>"
+                                 data-posttitle="<?php echo htmlspecialchars($comment_item['post_title'], ENT_QUOTES, 'UTF-8'); ?>"
+                                 data-date="<?php echo htmlspecialchars(formatDate($comment_item['created_at']), ENT_QUOTES, 'UTF-8'); ?>"
+                                 onclick="showCommentDetails(this)">View Details</button>
                                     <form method="POST" style="display: inline;">
                                         <input type="hidden" name="action" value="approve_comment">
                                         <input type="hidden" name="id" value="<?php echo $comment_item['id']; ?>">
@@ -231,7 +269,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <form method="POST" style="display: inline;">
                                         <input type="hidden" name="action" value="limit_user">
                                         <input type="hidden" name="id" value="<?php echo $user_item['id']; ?>">
-                                        <select name="user_status" onchange="this.form.submit()">
+                                        <select name="user_status">
                                             <option value="active" <?php echo $user_item['status'] === 'active' ? 'selected' : ''; ?>>Active</option>
                                             <option value="limited" <?php echo $user_item['status'] === 'limited' ? 'selected' : ''; ?>>Limited</option>
                                             <option value="banned" <?php echo $user_item['status'] === 'banned' ? 'selected' : ''; ?>>Banned</option>
@@ -246,6 +284,81 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         </main>
     </div>
     
+    <!-- Modal for viewing details -->
+    <div id="detailsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Details</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+    
     <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script>
+        function showPostDetails(id, title, content, author, date) {
+            document.getElementById('modalTitle').textContent = 'Post Details';
+            document.getElementById('modalBody').innerHTML = `
+                <h4>Title:</h4>
+                <p>${title}</p>
+                <h4>Author:</h4>
+                <p>${author}</p>
+                <h4>Submitted:</h4>
+                <p>${date}</p>
+                <h4>Content:</h4>
+                <div class="content-preview">${content.replace(/\n/g, '<br>')}</div>
+            `;
+            document.getElementById('detailsModal').style.display = 'flex';
+        }
+
+    document.querySelectorAll('.btn-view-details').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const title = btn.dataset.title;
+        const content = btn.dataset.content || "";
+        const author = btn.dataset.author;
+        const date = btn.dataset.date;
+
+        showPostDetails(id, title, content, author, date);
+    });
+});
+
+        
+    function showCommentDetails(button) {
+    const content = button.dataset.content;
+    const author = button.dataset.author;
+    const postTitle = button.dataset.posttitle;
+    const date = button.dataset.date;
+
+    document.getElementById('modalTitle').textContent = 'Comment Details';
+    document.getElementById('modalBody').innerHTML = `
+        <h4>Author:</h4>
+        <p>${author}</p>
+        <h4>Post:</h4>
+        <p>${postTitle}</p>
+        <h4>Submitted:</h4>
+        <p>${date}</p>
+        <h4>Comment:</h4>
+        <div class="content-preview">${content.replace(/\n/g, '<br>')}</div>
+    `;
+    document.getElementById('detailsModal').style.display = 'flex';
+    }
+
+   
+        function closeModal() {
+            document.getElementById('detailsModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('detailsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
 </body>
 </html>

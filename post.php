@@ -28,7 +28,19 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
         if(isset($_POST['action'])) {
             $action = $_POST['action'];
             
-            if($action === 'edit_comment') {
+            if($action === 'delete_post') {
+                $post_id = (int)$_POST['post_id'];
+                if($post->canUserEdit($post_id, getUserId()) || isAdmin()) {
+                    $post->delete($post_id);
+                    redirect('index.php');
+                }
+            } elseif($action === 'delete_comment') {
+                $comment_id = (int)$_POST['comment_id'];
+                if($comment->canUserEdit($comment_id, getUserId()) || isAdmin()) {
+                    $comment->delete($comment_id);
+                    redirect("post.php?id=$post_id#comments");
+                }
+            } elseif($action === 'edit_comment') {
                 $comment_id = (int)$_POST['comment_id'];
                 $content = sanitizeInput($_POST['content']);
                 
@@ -57,11 +69,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                     }
                     
                     $comment->update($comment_id, $content, $media_file);
-                }
-            } elseif($action === 'delete_comment') {
-                $comment_id = (int)$_POST['comment_id'];
-                if($comment->canUserEdit($comment_id, getUserId())) {
-                    $comment->delete($comment_id);
                 }
             }
         } else {
@@ -141,6 +148,14 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                                         <button type="submit" class="btn btn-delete">Delete</button>
                                     </form>
                                 </div>
+                            <?php elseif(isAdmin()): ?>
+                                <div class="edit-delete-actions">
+                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?'); setTimeout(function(){ window.location.href='index.php'; }, 100);">
+                                        <input type="hidden" name="action" value="delete_post">
+                                        <input type="hidden" name="post_id" value="<?php echo $post_data['id']; ?>">
+                                        <button type="submit" class="btn btn-delete">Delete</button>
+                                    </form>
+                                </div>
                             <?php elseif(isLoggedIn()): ?>
                             <button onclick="reportContent('post', <?php echo $post_data['id']; ?>)" class="btn btn-report">Report</button>
                         <?php endif; ?>
@@ -158,10 +173,15 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                     $content = preg_replace('/\[u\](.*?)\[\/u\]/i', '<u>$1</u>', $content);
                     $content = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$2</a>', $content);
                     $content = preg_replace('/\[url\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$1</a>', $content);
-                    $content = preg_replace('/\[img\](.*?)\[\/img\]/i', '<img src="$1" alt="Image" style="max-width: 100%; height: auto; border-radius: 8px;">', $content);
+                    $content = preg_replace('/\[img\](.*?)\[\/img\]/i', '<img src="$1" alt="Image" style="max-width: 100%; max-height: 400px; height: auto; border-radius: 8px; object-fit: contain;">', $content);
                     $content = preg_replace('/\[h1\](.*?)\[\/h1\]/i', '<h1>$1</h1>', $content);
                     $content = preg_replace('/\[h2\](.*?)\[\/h2\]/i', '<h2>$1</h2>', $content);
                     $content = preg_replace('/\[h3\](.*?)\[\/h3\]/i', '<h3>$1</h3>', $content);
+                    $content = preg_replace('/\[centre\](.*?)\[\/centre\]/i', '<div class="bbcode-center">$1</div>', $content);
+                    $content = preg_replace('/\[center\](.*?)\[\/center\]/i', '<div class="bbcode-center">$1</div>', $content);
+                    $content = preg_replace('/\[box\](.*?)\[\/box\]/i', '<div class="bbcode-box">$1</div>', $content);
+                    $content = preg_replace('/\[color=(.*?)\](.*?)\[\/color\]/i', '<span style="color: $1;">$2</span>', $content);
+                    $content = preg_replace('/\[notice\](.*?)\[\/notice\]/i', '<div class="bbcode-notice">$1</div>', $content);
                     $content = nl2br($content);
                     echo $content;
                     ?>
@@ -243,19 +263,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                                     <?php if(isLoggedIn() && ($comment_item['user_id'] == getUserId() || isAdmin())): ?>
                                         <div class="edit-delete-actions">
                                             <?php if($comment_item['user_id'] == getUserId()): ?>
-                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?'); setTimeout(function(){ window.location.href='index.php'; }, 100);">
+                                                <button onclick="editComment(<?php echo $comment_item['id']; ?>)" class="btn btn-edit">Edit</button>
                                             <?php endif; ?>
                                             <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this comment?'); setTimeout(function(){ location.reload(); }, 100);">
                                                 <input type="hidden" name="action" value="delete_comment">
                                                 <input type="hidden" name="comment_id" value="<?php echo $comment_item['id']; ?>">
-                                                <button type="submit" class="btn btn-delete">Delete</button>
-                                            </form>
-                                        </div>
-                                    <?php elseif(isLoggedIn() && isAdmin()): ?>
-                                        <div class="edit-delete-actions">
-                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?'); setTimeout(function(){ window.location.href='index.php'; }, 100);">
-                                                <input type="hidden" name="action" value="delete_post">
-                                                <input type="hidden" name="post_id" value="<?php echo $post_data['id']; ?>">
                                                 <button type="submit" class="btn btn-delete">Delete</button>
                                             </form>
                                         </div>
@@ -275,10 +287,15 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                                 $content = preg_replace('/\[u\](.*?)\[\/u\]/i', '<u>$1</u>', $content);
                                 $content = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$2</a>', $content);
                                 $content = preg_replace('/\[url\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$1</a>', $content);
-                                $content = preg_replace('/\[img\](.*?)\[\/img\]/i', '<img src="$1" alt="Image" style="max-width: 100%; height: auto; border-radius: 8px;">', $content);
+                                $content = preg_replace('/\[img\](.*?)\[\/img\]/i', '<img src="$1" alt="Image" style="max-width: 100%; max-height: 400px; height: auto; border-radius: 8px; object-fit: contain;">', $content);
                                 $content = preg_replace('/\[h1\](.*?)\[\/h1\]/i', '<h1>$1</h1>', $content);
                                 $content = preg_replace('/\[h2\](.*?)\[\/h2\]/i', '<h2>$1</h2>', $content);
                                 $content = preg_replace('/\[h3\](.*?)\[\/h3\]/i', '<h3>$1</h3>', $content);
+                                $content = preg_replace('/\[centre\](.*?)\[\/centre\]/i', '<div class="bbcode-center">$1</div>', $content);
+                                $content = preg_replace('/\[center\](.*?)\[\/center\]/i', '<div class="bbcode-center">$1</div>', $content);
+                                $content = preg_replace('/\[box\](.*?)\[\/box\]/i', '<div class="bbcode-box">$1</div>', $content);
+                                $content = preg_replace('/\[color=(.*?)\](.*?)\[\/color\]/i', '<span style="color: $1;">$2</span>', $content);
+                                $content = preg_replace('/\[notice\](.*?)\[\/notice\]/i', '<div class="bbcode-notice">$1</div>', $content);
                                 $content = nl2br($content);
                                 echo $content;
                                 ?>
@@ -308,6 +325,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
     
     <script src="assets/js/bbcode.js"></script>
     <script src="assets/js/time-ago.js"></script>
+    <script src="assets/js/main.js"></script>
     <script>
         // Character counter for comment
         document.getElementById('comment-content').addEventListener('input', function() {

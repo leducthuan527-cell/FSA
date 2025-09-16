@@ -30,7 +30,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user_id = $user->register($username, $email, $password);
         
         if($user_id) {
-            $success = 'Account created successfully! You can now log in.';
+            redirect('login.php?message=' . urlencode('Account created successfully! You can now log in.'));
         } else {
             $error = 'Username or email already exists';
         }
@@ -57,10 +57,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="alert alert-error"><?php echo $error; ?></div>
             <?php endif; ?>
             
-            <?php if($success): ?>
-                <div class="alert alert-success"><?php echo $success; ?></div>
-            <?php endif; ?>
-            
             <form method="POST" class="auth-form">
                 <div class="form-group">
                     <label for="username">Username</label>
@@ -76,12 +72,28 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <div class="password-input-container">
+                        <input type="password" id="password" name="password" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('password', this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="confirm_password">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required>
+                    <div class="password-input-container">
+                        <input type="password" id="confirm_password" name="confirm_password" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirm_password', this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 
                 <button type="submit" class="btn btn-primary btn-full">Create Account</button>
@@ -93,5 +105,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
+    
+    <script src="../assets/js/main.js"></script>
 </body>
 </html>

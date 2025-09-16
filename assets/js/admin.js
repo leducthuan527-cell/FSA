@@ -28,18 +28,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Auto-submit forms when select changes
-    const autoSubmitSelects = document.querySelectorAll('select[onchange*="submit"]');
-    autoSubmitSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            if (confirm('Are you sure you want to change this user\'s status?')) {
+        const autoSubmitSelects = document.querySelectorAll("select[name='user_status']");
+        autoSubmitSelects.forEach(select => {
+        const originalValue = select.value; // store current
+        select.addEventListener("change", function() {
+            if (confirm("Are you sure you want to change this user's status?")) {
                 this.form.submit();
             } else {
-                // Reset to original value
-                this.selectedIndex = 0;
+                this.value = originalValue; // revert to before
             }
         });
     });
-    
+
     // Confirmation for report actions
     const reportForms = document.querySelectorAll('form[action*="report"]');
     reportForms.forEach(form => {
@@ -110,76 +110,6 @@ document.addEventListener('DOMContentLoaded', function() {
     addSearchToSection('comments', 'search-comments');
     addSearchToSection('reports', 'search-reports');
     addSearchToSection('users', 'search-users');
-    
-    // Bulk actions
-    function addBulkActions(sectionId) {
-        const section = document.getElementById(sectionId);
-        if (!section) return;
-        
-        const items = section.querySelectorAll('.admin-item');
-        if (items.length === 0) return;
-        
-        // Add checkboxes to items
-        items.forEach((item, index) => {
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'bulk-checkbox';
-            checkbox.value = index;
-            checkbox.style.marginRight = '0.5rem';
-            
-            const header = item.querySelector('.item-header');
-            header.insertBefore(checkbox, header.firstChild);
-        });
-        
-        // Add bulk action controls
-        const bulkControls = document.createElement('div');
-        bulkControls.className = 'bulk-controls';
-        bulkControls.style.marginBottom = '1rem';
-        bulkControls.style.padding = '1rem';
-        bulkControls.style.background = '#f8fafc';
-        bulkControls.style.borderRadius = '4px';
-        bulkControls.style.display = 'none';
-        
-        const selectAllCheckbox = document.createElement('input');
-        selectAllCheckbox.type = 'checkbox';
-        selectAllCheckbox.id = 'select-all-' + sectionId;
-        
-        const selectAllLabel = document.createElement('label');
-        selectAllLabel.htmlFor = 'select-all-' + sectionId;
-        selectAllLabel.textContent = 'Select All';
-        selectAllLabel.style.marginLeft = '0.5rem';
-        selectAllLabel.style.marginRight = '1rem';
-        
-        bulkControls.appendChild(selectAllCheckbox);
-        bulkControls.appendChild(selectAllLabel);
-        
-        const title = section.querySelector('h1');
-        title.parentNode.insertBefore(bulkControls, title.nextSibling);
-        
-        // Select all functionality
-        selectAllCheckbox.addEventListener('change', function() {
-            const checkboxes = section.querySelectorAll('.bulk-checkbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-        });
-        
-        // Show/hide bulk controls
-        const checkboxes = section.querySelectorAll('.bulk-checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const checkedBoxes = section.querySelectorAll('.bulk-checkbox:checked');
-                if (checkedBoxes.length > 0) {
-                    bulkControls.style.display = 'block';
-                } else {
-                    bulkControls.style.display = 'none';
-                }
-            });
-        });
-    }
-    
-    // Add bulk actions to sections
-    addBulkActions('posts');
-    addBulkActions('comments');
-    addBulkActions('reports');
     
     // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {

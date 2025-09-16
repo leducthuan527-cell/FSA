@@ -37,7 +37,13 @@ foreach($paginated_posts as $post_item) {
             ' . ($post_item['status'] !== 'published' ? '<span class="status-badge status-' . $post_item['status'] . '">' . ucfirst($post_item['status']) . '</span>' : '') . '
         </div>
         <div class="profile-post-excerpt">
-            ' . substr(strip_tags($post_item['content']), 0, 150) . '...
+            ';
+    
+    // Parse BBCode for preview and limit to 150 characters
+    require_once 'assets/js/bbcode-parser.php';
+    $content = parseBBCodeForPreview($post_item['content']);
+    $content = substr($content, 0, 150);
+    $html .= $content . '...
         </div>
         <div class="profile-post-meta">
             <time class="time-ago" data-datetime="' . $post_item['created_at'] . '"></time>';
@@ -45,11 +51,7 @@ foreach($paginated_posts as $post_item) {
     if($is_own_profile) {
         $html .= '<div class="profile-post-actions" onclick="event.stopPropagation();">
                 <a href="edit-post.php?id=' . $post_item['id'] . '" class="btn btn-edit">Edit</a>
-                <form method="POST" style="display: inline;" onsubmit="return confirm(\'Are you sure you want to delete this post?\'); setTimeout(function(){ location.reload(); }, 100);">
-                    <input type="hidden" name="action" value="delete_post">
-                    <input type="hidden" name="post_id" value="' . $post_item['id'] . '">
-                    <button type="submit" class="btn btn-delete">Delete</button>
-                </form>
+                <button onclick="deletePost(' . $post_item['id'] . ', this)" class="btn btn-delete">Delete</button>
             </div>';
     }
     

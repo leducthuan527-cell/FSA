@@ -15,7 +15,7 @@ function parseBBCode(text) {
     text = text.replace(/\[url\](.*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener">$1</a>');
     
     // Images
-    text = text.replace(/\[img\](.*?)\[\/img\]/gi, '<img src="$1" alt="Image" style="max-width: 100%; height: auto; border-radius: 8px;">');
+    text = text.replace(/\[img\](.*?)\[\/img\]/gi, '<img src="$1" alt="Image" style="max-width: 100%; max-height: 400px; height: auto; border-radius: 8px; object-fit: contain;">');
     
     // Headers
     text = text.replace(/\[h1\](.*?)\[\/h1\]/gi, '<h1>$1</h1>');
@@ -27,8 +27,44 @@ function parseBBCode(text) {
     text = text.replace(/\[ol\](.*?)\[\/ol\]/gis, '<ol>$1</ol>');
     text = text.replace(/\[li\](.*?)\[\/li\]/gi, '<li>$1</li>');
     
+    // Center
+    text = text.replace(/\[centre\](.*?)\[\/centre\]/gi, '<div class="bbcode-center">$1</div>');
+    text = text.replace(/\[center\](.*?)\[\/center\]/gi, '<div class="bbcode-center">$1</div>');
+    
+    // Box
+    text = text.replace(/\[box\](.*?)\[\/box\]/gi, '<div class="bbcode-box">$1</div>');
+    
+    // Color
+    text = text.replace(/\[color=(.*?)\](.*?)\[\/color\]/gi, '<span style="color: $1;">$2</span>');
+    
+    // Notice
+    text = text.replace(/\[notice\](.*?)\[\/notice\]/gi, '<div class="bbcode-notice">$1</div>');
+    
     // Line breaks
     text = text.replace(/\n/g, '<br>');
+    
+    return text;
+}
+
+function parseBBCodeForPreview(text) {
+    // Remove images for preview
+    text = text.replace(/\[img\](.*?)\[\/img\]/gi, '[Image]');
+    
+    // Remove other BBCode tags but keep content
+    text = text.replace(/\[b\](.*?)\[\/b\]/gi, '$1');
+    text = text.replace(/\[i\](.*?)\[\/i\]/gi, '$1');
+    text = text.replace(/\[u\](.*?)\[\/u\]/gi, '$1');
+    text = text.replace(/\[url=(.*?)\](.*?)\[\/url\]/gi, '$2');
+    text = text.replace(/\[url\](.*?)\[\/url\]/gi, '$1');
+    text = text.replace(/\[h[1-3]\](.*?)\[\/h[1-3]\]/gi, '$1');
+    text = text.replace(/\[centre\](.*?)\[\/centre\]/gi, '$1');
+    text = text.replace(/\[center\](.*?)\[\/center\]/gi, '$1');
+    text = text.replace(/\[box\](.*?)\[\/box\]/gi, '$1');
+    text = text.replace(/\[color=(.*?)\](.*?)\[\/color\]/gi, '$2');
+    text = text.replace(/\[notice\](.*?)\[\/notice\]/gi, '$1');
+    text = text.replace(/\[ul\](.*?)\[\/ul\]/gis, '$1');
+    text = text.replace(/\[ol\](.*?)\[\/ol\]/gis, '$1');
+    text = text.replace(/\[li\](.*?)\[\/li\]/gi, '• $1');
     
     return text;
 }
@@ -84,6 +120,14 @@ function insertBBCode(elementId, tag, hasClosing = true) {
             break;
         case 'li':
             insertText = `[li]${selectedText}[/li]`;
+            break;
+        case 'color':
+            const color = prompt('Enter color (e.g., #ff0000, red):');
+            if (color) {
+                insertText = `[color=${color}]${selectedText}[/color]`;
+            } else {
+                return;
+            }
             break;
         default:
             insertText = selectedText;

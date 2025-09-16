@@ -25,14 +25,21 @@ if(!$profile_data) {
 // Check if profile is accessible
 $is_limited = $profile_data['status'] === 'limited' || $profile_data['status'] === 'banned';
 $is_own_profile = isLoggedIn() && getUserId() == $profile_id;
+$access_denied = false;
 
 // Limited/banned profiles should be inaccessible to others
-if($is_limited && !$is_own_profile && !isAdmin()) {
+if(($profile_data['status'] === 'limited' || $profile_data['status'] === 'banned') && !$is_own_profile && !isAdmin()) {
     $access_denied = true;
 } else {
-    $access_denied = false;
+    // Return JSON response for AJAX
+    if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true]);
+        exit;
+    }
     $user_posts = $post->getUserPosts($profile_id, getUserId());
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -56,9 +63,6 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
                     <a href="index.php" class="btn btn-primary">← Back to Home</a>
                 </div>
             <?php else: ?>
-                <div class="profile-banner">
-                    <img src="assets/images/banners/<?php echo htmlspecialchars($profile_data['banner'] ?? 'default-banner.jpg'); ?>" alt="Profile Banner">
-                </div>
                 
                 <?php if($is_limited && $is_own_profile): ?>
                     <div class="profile-restricted">
@@ -68,6 +72,9 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
                 <?php endif; ?>
                 
                 <div class="profile-container">
+                    <div class="profile-banner" style="<?php echo !empty($profile_data['banner']) && $profile_data['banner'] !== 'default-banner.jpg' ? 'background-image: url(assets/images/banners/' . htmlspecialchars($profile_data['banner']) . ');' : ''; ?>">
+                    </div>
+                    
                     <div class="profile-header">
                         <div class="profile-avatar">
                             <img src="assets/images/avatars/<?php echo htmlspecialchars($profile_data['avatar']); ?>" 
@@ -75,6 +82,21 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
                         </div>
                         <div class="profile-info">
                             <h1><?php echo htmlspecialchars($profile_data['username']); ?></h1>
+                            
+                            <div class="profile-badges">
+                                <?php if($profile_data['role'] === 'admin'): ?>
+                                    <span class="profile-badge badge-admin">Administrator</span>
+                                <?php else: ?>
+                                    <span class="profile-badge badge-user">Member</span>
+                                <?php endif; ?>
+                                
+                                <?php if($profile_data['status'] === 'limited'): ?>
+                                    <span class="profile-badge status-limited">Limited</span>
+                                <?php elseif($profile_data['status'] === 'banned'): ?>
+                                    <span class="profile-badge status-banned">Banned</span>
+                                <?php endif; ?>
+                            </div>
+                            
                             <div class="profile-stats">
                                 <div class="stat">
                                     <span class="stat-number"><?php echo $profile_data['total_posts']; ?></span>
@@ -90,6 +112,17 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
                                 </div>
                             </div>
                             <p class="join-date">Member since <?php echo formatDate($profile_data['created_at']); ?></p>
+                            
+                            <div class="profile-description">
+                                <div class="bbcode-content">
+                                    <?php 
+                                    $description = htmlspecialchars($profile_data['description']);
+                                    // Parse BBCode for description
+                                    require_once 'assets/js/bbcode-parser.php';
+                                    echo parseBBCodeContent($description);
+                                    ?>
+                                </div>
+                            </div>
                             
                             <?php if($is_own_profile): ?>
                                 <a href="edit-profile.php" class="btn btn-outline">Edit Profile</a>
@@ -130,11 +163,7 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
                                                 <?php if($is_own_profile): ?>
                                                     <div class="profile-post-actions" onclick="event.stopPropagation();">
                                                         <a href="edit-post.php?id=<?php echo $post_item['id']; ?>" class="btn btn-edit">Edit</a>
-                                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?'); setTimeout(function(){ location.reload(); }, 100);">
-                                                            <input type="hidden" name="action" value="delete_post">
-                                                            <input type="hidden" name="post_id" value="<?php echo $post_item['id']; ?>">
-                                                            <button type="submit" class="btn btn-delete">Delete</button>
-                                                        </form>
+                                                        <button onclick="deletePost(<?php echo $post_item['id']; ?>, this)" class="btn btn-delete">Delete</button>
                                                     </div>
                                                 <?php endif; ?>
                                             </div>
@@ -163,6 +192,57 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
     <script>
         let profilePostsPage = 1;
         
+        function deletePost(postId, button) {
+            if (!confirm('Are you sure you want to delete this post?')) {
+                return;
+            }
+            
+            const originalText = button.textContent;
+            button.innerHTML = '<span class="loading-spinner"></span>';
+            button.disabled = true;
+            
+            const formData = new FormData();
+            formData.append('action', 'delete_post');
+            formData.append('post_id', postId);
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the post card from DOM
+                    const postCard = button.closest('.profile-post-card');
+                    postCard.style.opacity = '0';
+                    postCard.style.transform = 'translateY(-20px)';
+                    setTimeout(() => {
+                        postCard.remove();
+                        
+                        // Check if no posts left
+                        const remainingPosts = document.querySelectorAll('.profile-post-card');
+                        if (remainingPosts.length === 0) {
+                            const container = document.querySelector('.profile-posts-list');
+                            container.innerHTML = '<div class="no-posts"><p>No posts yet.</p></div>';
+                        }
+                    }, 300);
+                } else {
+                    alert('Failed to delete post. Please try again.');
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                button.textContent = originalText;
+                button.disabled = false;
+            });
+        }
+        
         function loadMoreProfilePosts() {
             profilePostsPage++;
             fetch(`load-more-profile-posts.php?user_id=<?php echo $profile_id; ?>&page=${profilePostsPage}`)
@@ -190,16 +270,13 @@ if($is_limited && !$is_own_profile && !isAdmin()) {
                 });
         }
         
-        // Handle post deletion
-        <?php if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_post' && $is_own_profile): ?>
-            <?php
-            $post_id = (int)$_POST['post_id'];
-            if($post->canUserEdit($post_id, getUserId())) {
-                $post->delete($post_id);
-                echo "window.location.reload();";
-            }
-            ?>
-        <?php endif; ?>
+        // Add smooth transitions for post cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const postCards = document.querySelectorAll('.profile-post-card');
+            postCards.forEach(card => {
+                card.style.transition = 'all 0.3s ease';
+            });
+        });
     </script>
 </body>
 </html>
