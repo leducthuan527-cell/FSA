@@ -70,7 +70,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         if($user->updateProfile(getUserId(), $update_data)) {
             $_SESSION['username'] = $username;
             $success = 'Profile updated successfully!';
-            $profile_data = $user->getUserById(getUserId());
+            $profile_data = $user->getUserById(getUserId()); // Refresh data
+            // Redirect to profile page after successful update
+            redirect('profile.php?id=' . getUserId() . '&updated=1');
         } else {
             $error = 'Failed to update profile. Username or email may already exist.';
         }

@@ -71,6 +71,10 @@ if(($profile_data['status'] === 'limited' || $profile_data['status'] === 'banned
                     </div>
                 <?php endif; ?>
                 
+                <?php if(isset($_GET['updated']) && $is_own_profile): ?>
+                    <div class="alert alert-success">Profile updated successfully!</div>
+                <?php endif; ?>
+                
                 <div class="profile-container">
                     <div class="profile-banner" style="<?php echo !empty($profile_data['banner']) && $profile_data['banner'] !== 'default-banner.jpg' ? 'background-image: url(assets/images/banners/' . htmlspecialchars($profile_data['banner']) . ');' : ''; ?>">
                     </div>
@@ -80,6 +84,9 @@ if(($profile_data['status'] === 'limited' || $profile_data['status'] === 'banned
                             <img src="assets/images/avatars/<?php echo htmlspecialchars($profile_data['avatar']); ?>" 
                                  alt="<?php echo htmlspecialchars($profile_data['username']); ?>">
                         </div>
+                    </div>
+                    
+                    <div class="profile-content">
                         <div class="profile-info">
                             <h1><?php echo htmlspecialchars($profile_data['username']); ?></h1>
                             
@@ -128,9 +135,7 @@ if(($profile_data['status'] === 'limited' || $profile_data['status'] === 'banned
                                 <a href="edit-profile.php" class="btn btn-outline">Edit Profile</a>
                             <?php endif; ?>
                         </div>
-                    </div>
-                    
-                    <div class="profile-content">
+                        
                         <h2>Posts by <?php echo htmlspecialchars($profile_data['username']); ?></h2>
                         
                         <?php if(empty($user_posts)): ?>
