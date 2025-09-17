@@ -76,9 +76,11 @@ if(($profile_data['status'] === 'limited' || $profile_data['status'] === 'banned
                 <?php endif; ?>
                 
                 <div class="profile-container">
-                    <div class="profile-banner" style="<?php echo !empty($profile_data['banner']) && $profile_data['banner'] !== 'default-banner.jpg' ? 'background-image: url(assets/images/banners/' . htmlspecialchars($profile_data['banner']) . ');' : ''; ?>">
+                    <div class="profile-banner" 
+                        style="background-image: url('assets/images/banners/<?php echo htmlspecialchars($profile_data['banner']); ?>');
+                        background-size: cover;
+                        background-position: center;">
                     </div>
-                    
                     <div class="profile-header">
                         <div class="profile-avatar">
                             <img src="assets/images/avatars/<?php echo htmlspecialchars($profile_data['avatar']); ?>" 

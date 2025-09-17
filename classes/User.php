@@ -33,16 +33,14 @@ class User {
     }
 public function getUserById($id) {
     $query = "SELECT u.id, u.username, u.email, u.role, u.status, 
-                     u.created_at, u.avatar,
-                     COALESCE(u.gender, 'prefer_not_to_say') AS gender,
-                     COALESCE(u.description, 'Nothing here~') AS description,
-                     COUNT(DISTINCT p.id) AS total_posts,
-                     COUNT(DISTINCT c.id) AS total_comments
-              FROM users u
-              LEFT JOIN posts p ON u.id = p.user_id AND p.status = 'published'
-              LEFT JOIN comments c ON u.id = c.user_id AND c.status = 'approved'
-              WHERE u.id = ?
-              GROUP BY u.id";
+               u.created_at, u.avatar, u.banner,
+               COALESCE(u.gender, 'prefer_not_to_say') AS gender,
+               COALESCE(u.description, 'Nothing here~') AS description,
+               (SELECT COUNT(*) FROM posts p WHERE p.user_id = u.id AND p.status = 'published') AS total_posts,
+               (SELECT COUNT(*) FROM comments c WHERE c.user_id = u.id AND c.status = 'approved') AS total_comments
+        FROM users u
+        WHERE u.id = ?
+        LIMIT 1";
     $stmt = $this->conn->prepare($query);
     $stmt->execute([$id]);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);

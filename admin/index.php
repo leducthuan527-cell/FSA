@@ -134,7 +134,10 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <h3><?php echo htmlspecialchars($post_item['title']); ?></h3>
                                 <div class="spacer"></div>
                                 <div class="item-content">
-                                    <?php echo substr(strip_tags($post_item['content']), 0, 200) . '...'; ?>
+                                   <?php
+                                $preview = strip_tags($post_item['content']);
+                                echo strlen($preview) > 100 ? substr($preview, 0, 100) . '...' : $preview;
+                                ?>
                                 </div>
                                 <div class="item-actions">
                                     <div class="item-actions">
@@ -187,7 +190,10 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <h3>Comment on "<?php echo htmlspecialchars($comment_item['post_title']); ?>"</h3>
                                 <div class="spacer"></div>
                                 <div class="item-content">
-                                    <?php echo htmlspecialchars($comment_item['content'], ENT_QUOTES, 'UTF-8'); ?>
+                                    <?php
+                                    $preview = strip_tags($comment_item['content']);
+                                    echo strlen($preview) > 100 ? substr($preview, 0, 100) . '...' : $preview;
+                                    ?>
                                 </div>
                                 <div class="item-actions">
                                  <button class="btn-view-details"
@@ -227,7 +233,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                                 <div class="item-content">
                                     <p><strong>Reason:</strong> <?php echo htmlspecialchars($report_item['reason']); ?></p>
-                                    <p><strong>Content:</strong> <?php echo htmlspecialchars(substr($report_item['content_preview'], 0, 200)); ?>...</p>
+                                    <p><strong>Content:</strong> <?php echo htmlspecialchars(substr($report_item['content_preview'], 0, 100)); ?>...</p>
                                 </div>
                                 <div class="item-actions">
                                     <form method="POST" style="display: inline;">

@@ -22,21 +22,21 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     $content = sanitizeInput($_POST['content']);
     
     if(empty($title) || empty($content)) {
-        $error = 'Please fill in all fields';
-    } elseif(strlen($title) > 100) {
-        $error = 'Title must be 100 characters or less';
-    } elseif(strlen($content) > 3000) {
-        $error = 'Content must be 3000 characters or less';       
-        if(!$error) {
-        $post = new Post($db);
-            if($post->createWithMedia(getUserId(), $title, $content)) {
-            $success = 'Post submitted for review. It will be published after admin approval.';
-                // Clear form data
-                $_POST = array();
-        } else {
-            $error = 'Failed to create post. Please try again.';
-        }
-        }
+    $error = 'Please fill in all fields';
+} elseif(strlen($title) > 100) {
+    $error = 'Title must be 100 characters or less';
+} elseif(strlen($content) > 5000) {
+    $error = 'Content must be 5000 characters or less';
+}
+
+if(!$error) {
+    $post = new Post($db);
+    if($post->createWithMedia(getUserId(), $title, $content)) {
+        $success = 'Post submitted for review. It will be published after admin approval.';
+        $_POST = array(); // Clear form
+    } else {
+        $error = 'Failed to create post. Please try again.';
+    }
     }
 }
 ?>
@@ -140,9 +140,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </svg>
                             </button>
                             </div>
-                            <textarea id="content" name="content" rows="15" required maxlength="3000"><?php echo !$success && isset($_POST['content']) ? htmlspecialchars($_POST['content']) : ''; ?></textarea>
+                            <textarea id="content" name="content" rows="15" required maxlength="5000"><?php echo !$success && isset($_POST['content']) ? htmlspecialchars($_POST['content']) : ''; ?></textarea>
                             <div class="char-counter">
-                                <span id="content-count">0</span>/3000 characters
+                                <span id="content-count">0</span>/5000 characters
                             </div>
                     </div>
                     

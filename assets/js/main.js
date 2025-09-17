@@ -207,23 +207,6 @@ function addCharacterCounter(textarea, maxLength) {
     counter.style.fontSize = '0.8rem';
     counter.style.color = '#64748b';
     counter.style.marginTop = '0.25rem';
-    
-    function updateCounter() {
-        const remaining = maxLength - textarea.value.length;
-        counter.textContent = `${remaining} characters remaining`;
-        
-        if (remaining < 0) {
-            counter.style.color = '#dc2626';
-        } else if (remaining < 50) {
-            counter.style.color = '#d97706';
-        } else {
-            counter.style.color = '#64748b';
-        }
-    }
-    
-    textarea.addEventListener('input', updateCounter);
-    textarea.parentNode.appendChild(counter);
-    updateCounter();
 }
 
 // Initialize character counters
