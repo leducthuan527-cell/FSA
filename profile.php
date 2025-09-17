@@ -126,9 +126,22 @@ if(($profile_data['status'] === 'limited' || $profile_data['status'] === 'banned
                                 <div class="bbcode-content">
                                     <?php 
                                     $description = htmlspecialchars($profile_data['description']);
-                                    // Parse BBCode for description
-                                    require_once 'assets/js/bbcode-parser.php';
-                                    echo parseBBCodeContent($description);
+                                    // Parse BBCode for description with line break support
+                                    $description = preg_replace('/\[b\](.*?)\[\/b\]/is', '<strong>$1</strong>', $description);
+                                    $description = preg_replace('/\[i\](.*?)\[\/i\]/is', '<em>$1</em>', $description);
+                                    $description = preg_replace('/\[u\](.*?)\[\/u\]/is', '<u>$1</u>', $description);
+                                    $description = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/is', '<a href="$1" target="_blank" rel="noopener">$2</a>', $description);
+                                    $description = preg_replace('/\[url\](.*?)\[\/url\]/is', '<a href="$1" target="_blank" rel="noopener">$1</a>', $description);
+                                    $description = preg_replace('/\[color=(.*?)\](.*?)\[\/color\]/is', '<span style="color: $1;">$2</span>', $description);
+                                    $description = preg_replace('/\[h1\](.*?)\[\/h1\]/is', '<h1>$1</h1>', $description);
+                                    $description = preg_replace('/\[h2\](.*?)\[\/h2\]/is', '<h2>$1</h2>', $description);
+                                    $description = preg_replace('/\[h3\](.*?)\[\/h3\]/is', '<h3>$1</h3>', $description);
+                                    $description = preg_replace('/\[centre\](.*?)\[\/centre\]/is', '<div class="bbcode-center">$1</div>', $description);
+                                    $description = preg_replace('/\[center\](.*?)\[\/center\]/is', '<div class="bbcode-center">$1</div>', $description);
+                                    $description = preg_replace('/\[box\](.*?)\[\/box\]/is', '<div class="bbcode-box">$1</div>', $description);
+                                    $description = preg_replace('/\[notice\](.*?)\[\/notice\]/is', '<div class="bbcode-notice">$1</div>', $description);
+                                    $description = nl2br($description);
+                                    echo $description;
                                     ?>
                                 </div>
                             </div>

@@ -1154,6 +1154,49 @@ body {
     background: rgba(99, 102, 241, 0.8);
 }
 
+/* Image cropper modal styles */
+.cropper-container {
+    background: rgba(15, 23, 42, 0.9) !important;
+}
+
+.cropper-view-box,
+.cropper-face {
+    border-radius: 50% !important;
+}
+
+.cropper-view-box {
+    box-shadow: 0 0 0 1px #39f !important;
+    outline: 0 !important;
+}
+
+.cropper-crop-box {
+    border-color: #39f !important;
+}
+
+.cropper-point {
+    background-color: #39f !important;
+}
+
+.cropper-line {
+    background-color: #39f !important;
+}
+
+#avatar-crop-container,
+#banner-crop-container {
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(12px);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#avatar-crop-image,
+#banner-crop-image {
+    max-height: 400px;
+    width: 100%;
+    object-fit: contain;
+}
+
 .profile-description .bbcode-content {
     color: #cbd5e1;
     line-height: 1.6;

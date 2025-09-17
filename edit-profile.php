@@ -88,6 +88,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Edit Profile - Personal Blog</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/hero.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -212,6 +214,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="assets/js/bbcode.js"></script>
     <script src="assets/js/main.js"></script>
     <script>
+        let avatarCropper = null;
+        let bannerCropper = null;
+        let croppedAvatarBlob = null;
+        let croppedBannerBlob = null;
+        
         // Character counter for description
         document.getElementById('description').addEventListener('input', function() {
             document.getElementById('description-count').textContent = this.value.length;
@@ -220,17 +227,154 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Initialize counter
         document.getElementById('description-count').textContent = document.getElementById('description').value.length;
         
-        // Banner preview function
-        function previewBanner(input, previewId) {
+        // Avatar cropper functions
+        function initializeAvatarCropper(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const preview = document.getElementById(previewId);
-                    preview.style.backgroundImage = `url(${e.target.result})`;
+                    const cropImage = document.getElementById('avatar-crop-image');
+                    cropImage.src = e.target.result;
+                    document.getElementById('avatar-crop-container').style.display = 'block';
+                    
+                    if (avatarCropper) {
+                        avatarCropper.destroy();
+                    }
+                    
+                    avatarCropper = new Cropper(cropImage, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        autoCropArea: 1,
+                        responsive: true,
+                        background: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                    });
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         }
+        
+        function cropAvatar() {
+            if (avatarCropper) {
+                const canvas = avatarCropper.getCroppedCanvas({
+                    width: 200,
+                    height: 200,
+                });
+                
+                canvas.toBlob(function(blob) {
+                    croppedAvatarBlob = blob;
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('avatar-preview').src = url;
+                    document.getElementById('avatar-crop-container').style.display = 'none';
+                    avatarCropper.destroy();
+                    avatarCropper = null;
+                });
+            }
+        }
+        
+        function cancelAvatarCrop() {
+            document.getElementById('avatar-crop-container').style.display = 'none';
+            if (avatarCropper) {
+                avatarCropper.destroy();
+                avatarCropper = null;
+            }
+            document.getElementById('avatar').value = '';
+        }
+        
+        // Banner cropper functions
+        function initializeBannerCropper(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const cropImage = document.getElementById('banner-crop-image');
+                    cropImage.src = e.target.result;
+                    document.getElementById('banner-crop-container').style.display = 'block';
+                    
+                    if (bannerCropper) {
+                        bannerCropper.destroy();
+                    }
+                    
+                    bannerCropper = new Cropper(cropImage, {
+                        aspectRatio: 16/9,
+                        viewMode: 1,
+                        autoCropArea: 1,
+                        responsive: true,
+                        background: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                    });
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        function cropBanner() {
+            if (bannerCropper) {
+                const canvas = bannerCropper.getCroppedCanvas({
+                    width: 800,
+                    height: 450,
+                });
+                
+                canvas.toBlob(function(blob) {
+                    croppedBannerBlob = blob;
+                    const url = URL.createObjectURL(blob);
+                    const preview = document.getElementById('banner-preview');
+                    preview.style.backgroundImage = `url(${url})`;
+                    document.getElementById('banner-crop-container').style.display = 'none';
+                    bannerCropper.destroy();
+                    bannerCropper = null;
+                });
+            }
+        }
+        
+        function cancelBannerCrop() {
+            document.getElementById('banner-crop-container').style.display = 'none';
+            if (bannerCropper) {
+                bannerCropper.destroy();
+                bannerCropper = null;
+            }
+            document.getElementById('banner').value = '';
+        }
+        
+        // Override form submission to handle cropped images
+        document.querySelector('form').addEventListener('submit', function(e) {
+            if (croppedAvatarBlob || croppedBannerBlob) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                
+                if (croppedAvatarBlob) {
+                    formData.set('avatar', croppedAvatarBlob, 'avatar.jpg');
+                }
+                
+                if (croppedBannerBlob) {
+                    formData.set('banner', croppedBannerBlob, 'banner.jpg');
+                }
+                
+                fetch(this.action || window.location.href, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating your profile.');
+                });
+            }
+        });
     </script>
 </body>
 </html>
