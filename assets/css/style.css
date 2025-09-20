@@ -1154,47 +1154,176 @@ body {
     background: rgba(99, 102, 241, 0.8);
 }
 
-/* Image cropper modal styles */
-.cropper-container {
-    background: rgba(15, 23, 42, 0.9) !important;
+/* Crop Modal Styles */
+.crop-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
 }
 
-.cropper-view-box,
-.cropper-face {
-    border-radius: 50% !important;
+.crop-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.crop-modal-content {
+    position: relative;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    max-width: 90vw;
+    max-height: 90vh;
+    width: 800px;
+    display: flex;
+    flex-direction: column;
+}
+
+.crop-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.crop-modal-header h3 {
+    color: #f1f5f9;
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.crop-modal-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.crop-modal-close:hover {
+    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.crop-modal-body {
+    padding: 1.5rem;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.crop-container {
+    width: 100%;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.crop-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+/* Cropper.js customization */
+.cropper-container {
+    background: transparent !important;
 }
 
 .cropper-view-box {
-    box-shadow: 0 0 0 1px #39f !important;
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.8) !important;
     outline: 0 !important;
 }
 
 .cropper-crop-box {
-    border-color: #39f !important;
+    border-color: rgba(99, 102, 241, 0.8) !important;
 }
 
 .cropper-point {
-    background-color: #39f !important;
+    background-color: #6366f1 !important;
+    opacity: 0.8 !important;
 }
 
 .cropper-line {
-    background-color: #39f !important;
+    background-color: rgba(99, 102, 241, 0.6) !important;
 }
 
-#avatar-crop-container,
-#banner-crop-container {
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(12px);
-    border-radius: 8px;
-    padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+.cropper-point.point-se {
+    width: 8px !important;
+    height: 8px !important;
 }
 
-#avatar-crop-image,
-#banner-crop-image {
-    max-height: 400px;
-    width: 100%;
-    object-fit: contain;
+.cropper-dashed {
+    border-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+/* Avatar specific cropper styles */
+#avatar-crop-modal .cropper-view-box,
+#avatar-crop-modal .cropper-face {
+    border-radius: 50% !important;
+}
+
+/* Responsive crop modal */
+@media (max-width: 768px) {
+    .crop-modal {
+        padding: 1rem;
+    }
+    
+    .crop-modal-content {
+        width: 100%;
+        max-width: none;
+    }
+    
+    .crop-container {
+        height: 300px;
+    }
+    
+    .crop-modal-header,
+    .crop-modal-body,
+    .crop-modal-footer {
+        padding: 1rem;
+    }
+    
+    .crop-modal-footer {
+        flex-direction: column;
+    }
+    
+    .crop-modal-footer .btn {
+        width: 100%;
+    }
 }
 
 .profile-description .bbcode-content {
