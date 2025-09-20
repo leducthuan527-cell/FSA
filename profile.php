@@ -17,6 +17,30 @@ $profile_id = (int)$_GET['id'];
 $user = new User($db);
 $post = new Post($db);
 
+// Handle AJAX delete request
+if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_post') {
+    header('Content-Type: application/json');
+    
+    if(!isLoggedIn()) {
+        echo json_encode(['success' => false, 'message' => 'Not logged in']);
+        exit;
+    }
+    
+    $post_id = (int)$_POST['post_id'];
+    
+    // Check if user can delete this post (own post or admin)
+    if($post->canUserEdit($post_id, getUserId()) || isAdmin()) {
+        if($post->delete($post_id)) {
+            echo json_encode(['success' => true, 'message' => 'Post deleted successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to delete post']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Permission denied']);
+    }
+    exit;
+}
+
 $profile_data = $user->getUserById($profile_id);
 if(!$profile_data) {
     redirect('index.php');
@@ -31,12 +55,6 @@ $access_denied = false;
 if(($profile_data['status'] === 'limited' || $profile_data['status'] === 'banned') && !$is_own_profile && !isAdmin()) {
     $access_denied = true;
 } else {
-    // Return JSON response for AJAX
-    if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true]);
-        exit;
-    }
     $user_posts = $post->getUserPosts($profile_id, getUserId());
 }
 
