@@ -194,7 +194,7 @@ if(($profile_data['status'] === 'limited' || $profile_data['status'] === 'banned
                                                 <?php endif; ?>
                                             </div>
                                             <div class="profile-post-excerpt">
-                                                <?php echo substr(strip_tags($post_item['content']), 0, 150) . '...'; ?>
+                                                <?php echo substr(strip_tags($post_item['content']), 0, 100) . '...'; ?>
                                             </div>
                                             <div class="profile-post-meta">
                                                 <time class="time-ago" data-datetime="<?php echo $post_item['created_at']; ?>"></time>

@@ -1,4 +1,4 @@
-// Main JavaScript functionality
+//MainJS
 
 // Initialize hero background on all pages
 document.addEventListener('DOMContentLoaded', function() {
@@ -17,7 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeFormLoading();
 });
 
-function addHeroBackground() {
+//PageBGAnimation
+function addHeroBackground() { 
     const heroBackground = document.createElement('div');
     heroBackground.className = 'hero-background';
     heroBackground.innerHTML = `

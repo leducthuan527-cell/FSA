@@ -40,21 +40,21 @@ foreach($posts as $post_item) {
     // Parse BBCode for preview and limit to 40-50 words
     $content = $post_item['content'];
     // Remove BBCode tags for preview
-    $content = preg_replace('/\[img\](.*?)\[\/img\]/is', '[Image]', $content);
-    $content = preg_replace('/\[b\](.*?)\[\/b\]/is', '$1', $content);
-    $content = preg_replace('/\[i\](.*?)\[\/i\]/is', '$1', $content);
-    $content = preg_replace('/\[u\](.*?)\[\/u\]/is', '$1', $content);
-    $content = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/is', '$2', $content);
-    $content = preg_replace('/\[url\](.*?)\[\/url\]/is', '$1', $content);
-    $content = preg_replace('/\[h[1-3]\](.*?)\[\/h[1-3]\]/is', '$1', $content);
-    $content = preg_replace('/\[centre\](.*?)\[\/centre\]/is', '$1', $content);
-    $content = preg_replace('/\[center\](.*?)\[\/center\]/is', '$1', $content);
-    $content = preg_replace('/\[box\](.*?)\[\/box\]/is', '$1', $content);
-    $content = preg_replace('/\[color=(.*?)\](.*?)\[\/color\]/is', '$2', $content);
-    $content = preg_replace('/\[notice\](.*?)\[\/notice\]/is', '$1', $content);
+    $content = preg_replace('/\[img\](.*?)\[\/img\]/i', '[Image]', $content);
+    $content = preg_replace('/\[b\](.*?)\[\/b\]/i', '$1', $content);
+    $content = preg_replace('/\[i\](.*?)\[\/i\]/i', '$1', $content);
+    $content = preg_replace('/\[u\](.*?)\[\/u\]/i', '$1', $content);
+    $content = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/i', '$2', $content);
+    $content = preg_replace('/\[url\](.*?)\[\/url\]/i', '$1', $content);
+    $content = preg_replace('/\[h[1-3]\](.*?)\[\/h[1-3]\]/i', '$1', $content);
+    $content = preg_replace('/\[centre\](.*?)\[\/centre\]/i', '$1', $content);
+    $content = preg_replace('/\[center\](.*?)\[\/center\]/i', '$1', $content);
+    $content = preg_replace('/\[box\](.*?)\[\/box\]/i', '$1', $content);
+    $content = preg_replace('/\[color=(.*?)\](.*?)\[\/color\]/i', '$2', $content);
+    $content = preg_replace('/\[notice\](.*?)\[\/notice\]/i', '$1', $content);
     $content = preg_replace('/\[ul\](.*?)\[\/ul\]/is', '$1', $content);
     $content = preg_replace('/\[ol\](.*?)\[\/ol\]/is', '$1', $content);
-    $content = preg_replace('/\[li\](.*?)\[\/li\]/is', '• $1', $content);
+    $content = preg_replace('/\[li\](.*?)\[\/li\]/i', '• $1', $content);
     $content = strip_tags($content);
     
     // Limit to 40-50 words

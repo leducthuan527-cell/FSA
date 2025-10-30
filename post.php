@@ -168,23 +168,20 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                     // Parse BBCode for display
                     $content = htmlspecialchars($post_data['content']);
                     // Basic BBCode parsing
-                    $content = preg_replace('/\[b\](.*?)\[\/b\]/is', '<strong>$1</strong>', $content);
-                    $content = preg_replace('/\[i\](.*?)\[\/i\]/is', '<em>$1</em>', $content);
-                    $content = preg_replace('/\[u\](.*?)\[\/u\]/is', '<u>$1</u>', $content);
-                    $content = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/is', '<a href="$1" target="_blank" rel="noopener">$2</a>', $content);
-                    $content = preg_replace('/\[url\](.*?)\[\/url\]/is', '<a href="$1" target="_blank" rel="noopener">$1</a>', $content);
-                    $content = preg_replace('/\[img\](.*?)\[\/img\]/is', '<img src="$1" alt="Image" style="max-width: 100%; max-height: 400px; height: auto; border-radius: 8px; object-fit: contain;">', $content);
-                    $content = preg_replace('/\[h1\](.*?)\[\/h1\]/is', '<h1>$1</h1>', $content);
-                    $content = preg_replace('/\[h2\](.*?)\[\/h2\]/is', '<h2>$1</h2>', $content);
-                    $content = preg_replace('/\[h3\](.*?)\[\/h3\]/is', '<h3>$1</h3>', $content);
-                    $content = preg_replace('/\[centre\](.*?)\[\/centre\]/is', '<div class="bbcode-center">$1</div>', $content);
-                    $content = preg_replace('/\[center\](.*?)\[\/center\]/is', '<div class="bbcode-center">$1</div>', $content);
-                    $content = preg_replace('/\[box\](.*?)\[\/box\]/is', '<div class="bbcode-box">$1</div>', $content);
-                    $content = preg_replace('/\[color=(.*?)\](.*?)\[\/color\]/is', '<span style="color: $1;">$2</span>', $content);
-                    $content = preg_replace('/\[notice\](.*?)\[\/notice\]/is', '<div class="bbcode-notice">$1</div>', $content);
-                    $content = preg_replace('/\[ul\](.*?)\[\/ul\]/is', '<ul>$1</ul>', $content);
-                    $content = preg_replace('/\[ol\](.*?)\[\/ol\]/is', '<ol>$1</ol>', $content);
-                    $content = preg_replace('/\[li\](.*?)\[\/li\]/is', '<li>$1</li>', $content);
+                    $content = preg_replace('/\[b\](.*?)\[\/b\]/i', '<strong>$1</strong>', $content);
+                    $content = preg_replace('/\[i\](.*?)\[\/i\]/i', '<em>$1</em>', $content);
+                    $content = preg_replace('/\[u\](.*?)\[\/u\]/i', '<u>$1</u>', $content);
+                    $content = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$2</a>', $content);
+                    $content = preg_replace('/\[url\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$1</a>', $content);
+                    $content = preg_replace('/\[img\](.*?)\[\/img\]/i', '<img src="$1" alt="Image" style="max-width: 100%; max-height: 400px; height: auto; border-radius: 8px; object-fit: contain;">', $content);
+                    $content = preg_replace('/\[h1\](.*?)\[\/h1\]/i', '<h1>$1</h1>', $content);
+                    $content = preg_replace('/\[h2\](.*?)\[\/h2\]/i', '<h2>$1</h2>', $content);
+                    $content = preg_replace('/\[h3\](.*?)\[\/h3\]/i', '<h3>$1</h3>', $content);
+                    $content = preg_replace('/\[centre\](.*?)\[\/centre\]/i', '<div class="bbcode-center">$1</div>', $content);
+                    $content = preg_replace('/\[center\](.*?)\[\/center\]/i', '<div class="bbcode-center">$1</div>', $content);
+                    $content = preg_replace('/\[box\](.*?)\[\/box\]/i', '<div class="bbcode-box">$1</div>', $content);
+                    $content = preg_replace('/\[color=(.*?)\](.*?)\[\/color\]/i', '<span style="color: $1;">$2</span>', $content);
+                    $content = preg_replace('/\[notice\](.*?)\[\/notice\]/i', '<div class="bbcode-notice">$1</div>', $content);
                     $content = nl2br($content);
                     echo $content;
                     ?>
@@ -285,23 +282,20 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                                 // Parse BBCode for display
                                 $content = htmlspecialchars($comment_item['content']);
                                 // Basic BBCode parsing
-                                $content = preg_replace('/\[b\](.*?)\[\/b\]/is', '<strong>$1</strong>', $content);
-                                $content = preg_replace('/\[i\](.*?)\[\/i\]/is', '<em>$1</em>', $content);
-                                $content = preg_replace('/\[u\](.*?)\[\/u\]/is', '<u>$1</u>', $content);
-                                $content = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/is', '<a href="$1" target="_blank" rel="noopener">$2</a>', $content);
-                                $content = preg_replace('/\[url\](.*?)\[\/url\]/is', '<a href="$1" target="_blank" rel="noopener">$1</a>', $content);
-                                $content = preg_replace('/\[img\](.*?)\[\/img\]/is', '<img src="$1" alt="Image" style="max-width: 100%; max-height: 400px; height: auto; border-radius: 8px; object-fit: contain;">', $content);
-                                $content = preg_replace('/\[h1\](.*?)\[\/h1\]/is', '<h1>$1</h1>', $content);
-                                $content = preg_replace('/\[h2\](.*?)\[\/h2\]/is', '<h2>$1</h2>', $content);
-                                $content = preg_replace('/\[h3\](.*?)\[\/h3\]/is', '<h3>$1</h3>', $content);
-                                $content = preg_replace('/\[centre\](.*?)\[\/centre\]/is', '<div class="bbcode-center">$1</div>', $content);
-                                $content = preg_replace('/\[center\](.*?)\[\/center\]/is', '<div class="bbcode-center">$1</div>', $content);
-                                $content = preg_replace('/\[box\](.*?)\[\/box\]/is', '<div class="bbcode-box">$1</div>', $content);
-                                $content = preg_replace('/\[color=(.*?)\](.*?)\[\/color\]/is', '<span style="color: $1;">$2</span>', $content);
-                                $content = preg_replace('/\[notice\](.*?)\[\/notice\]/is', '<div class="bbcode-notice">$1</div>', $content);
-                                $content = preg_replace('/\[ul\](.*?)\[\/ul\]/is', '<ul>$1</ul>', $content);
-                                $content = preg_replace('/\[ol\](.*?)\[\/ol\]/is', '<ol>$1</ol>', $content);
-                                $content = preg_replace('/\[li\](.*?)\[\/li\]/is', '<li>$1</li>', $content);
+                                $content = preg_replace('/\[b\](.*?)\[\/b\]/i', '<strong>$1</strong>', $content);
+                                $content = preg_replace('/\[i\](.*?)\[\/i\]/i', '<em>$1</em>', $content);
+                                $content = preg_replace('/\[u\](.*?)\[\/u\]/i', '<u>$1</u>', $content);
+                                $content = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$2</a>', $content);
+                                $content = preg_replace('/\[url\](.*?)\[\/url\]/i', '<a href="$1" target="_blank" rel="noopener">$1</a>', $content);
+                                $content = preg_replace('/\[img\](.*?)\[\/img\]/i', '<img src="$1" alt="Image" style="max-width: 100%; max-height: 400px; height: auto; border-radius: 8px; object-fit: contain;">', $content);
+                                $content = preg_replace('/\[h1\](.*?)\[\/h1\]/i', '<h1>$1</h1>', $content);
+                                $content = preg_replace('/\[h2\](.*?)\[\/h2\]/i', '<h2>$1</h2>', $content);
+                                $content = preg_replace('/\[h3\](.*?)\[\/h3\]/i', '<h3>$1</h3>', $content);
+                                $content = preg_replace('/\[centre\](.*?)\[\/centre\]/i', '<div class="bbcode-center">$1</div>', $content);
+                                $content = preg_replace('/\[center\](.*?)\[\/center\]/i', '<div class="bbcode-center">$1</div>', $content);
+                                $content = preg_replace('/\[box\](.*?)\[\/box\]/i', '<div class="bbcode-box">$1</div>', $content);
+                                $content = preg_replace('/\[color=(.*?)\](.*?)\[\/color\]/i', '<span style="color: $1;">$2</span>', $content);
+                                $content = preg_replace('/\[notice\](.*?)\[\/notice\]/i', '<div class="bbcode-notice">$1</div>', $content);
                                 $content = nl2br($content);
                                 echo $content;
                                 ?>

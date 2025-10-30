@@ -88,8 +88,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Edit Profile - Personal Blog</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/hero.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -118,7 +116,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="form-group">
                         <label for="banner">Change Banner</label>
                         <input type="file" id="banner" name="banner" accept="image/*" 
-                               onchange="initializeBannerCropper(this)">
+                               onchange="previewBanner(this, 'banner-preview')">
                     </div>
                     
                     <div class="form-group">
@@ -134,7 +132,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="form-group">
                         <label for="avatar">Change Avatar</label>
                         <input type="file" id="avatar" name="avatar" accept="image/*" 
-                               onchange="initializeAvatarCropper(this)">
+                               onchange="previewImage(this, 'avatar-preview')">
                     </div>
                     
                     <div class="form-group">
@@ -207,46 +205,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </form>
             </div>
         </div>
-        
-        <!-- Avatar Cropping Modal -->
-        <div id="avatar-crop-modal" class="crop-modal" style="display: none;">
-            <div class="crop-modal-backdrop"></div>
-            <div class="crop-modal-content">
-                <div class="crop-modal-header">
-                    <h3>Crop Avatar</h3>
-                    <button type="button" class="crop-modal-close" onclick="cancelAvatarCrop()">&times;</button>
-                </div>
-                <div class="crop-modal-body">
-                    <div class="crop-container">
-                        <img id="avatar-crop-image" style="max-width: 100%; display: block;">
-                    </div>
-                </div>
-                <div class="crop-modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="cancelAvatarCrop()">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="cropAvatar()">Crop & Save</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Banner Cropping Modal -->
-        <div id="banner-crop-modal" class="crop-modal" style="display: none;">
-            <div class="crop-modal-backdrop"></div>
-            <div class="crop-modal-content">
-                <div class="crop-modal-header">
-                    <h3>Crop Banner</h3>
-                    <button type="button" class="crop-modal-close" onclick="cancelBannerCrop()">&times;</button>
-                </div>
-                <div class="crop-modal-body">
-                    <div class="crop-container">
-                        <img id="banner-crop-image" style="max-width: 100%; display: block;">
-                    </div>
-                </div>
-                <div class="crop-modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="cancelBannerCrop()">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="cropBanner()">Crop & Save</button>
-                </div>
-            </div>
-        </div>
     </main>
 
     <?php include 'includes/footer.php'; ?>
@@ -254,11 +212,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="assets/js/bbcode.js"></script>
     <script src="assets/js/main.js"></script>
     <script>
-        let avatarCropper = null;
-        let bannerCropper = null;
-        let croppedAvatarBlob = null;
-        let croppedBannerBlob = null;
-        
         // Character counter for description
         document.getElementById('description').addEventListener('input', function() {
             document.getElementById('description-count').textContent = this.value.length;
@@ -267,170 +220,17 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Initialize counter
         document.getElementById('description-count').textContent = document.getElementById('description').value.length;
         
-        // Avatar cropper functions
-        function initializeAvatarCropper(input) {
+        // Banner preview function
+        function previewBanner(input, previewId) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const cropImage = document.getElementById('avatar-crop-image');
-                    cropImage.src = e.target.result;
-                    document.getElementById('avatar-crop-modal').style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                    
-                    if (avatarCropper) {
-                        avatarCropper.destroy();
-                    }
-                    
-                    // Initialize cropper after modal is shown
-                    setTimeout(() => {
-                        avatarCropper = new Cropper(cropImage, {
-                            aspectRatio: 1,
-                            viewMode: 1,
-                            autoCropArea: 0.8,
-                            responsive: true,
-                            background: false,
-                            guides: true,
-                            center: true,
-                            highlight: false,
-                            cropBoxMovable: true,
-                            cropBoxResizable: true,
-                            toggleDragModeOnDblclick: false,
-                            minCropBoxWidth: 100,
-                            minCropBoxHeight: 100,
-                        });
-                    }, 100);
+                    const preview = document.getElementById(previewId);
+                    preview.style.backgroundImage = `url(${e.target.result})`;
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         }
-        
-        function cropAvatar() {
-            if (avatarCropper) {
-                const canvas = avatarCropper.getCroppedCanvas({
-                    width: 200,
-                    height: 200,
-                });
-                
-                canvas.toBlob(function(blob) {
-                    croppedAvatarBlob = blob;
-                    const url = URL.createObjectURL(blob);
-                    document.getElementById('avatar-preview').src = url;
-                    document.getElementById('avatar-crop-modal').style.display = 'none';
-                    document.body.style.overflow = '';
-                    avatarCropper.destroy();
-                    avatarCropper = null;
-                });
-            }
-        }
-        
-        function cancelAvatarCrop() {
-            document.getElementById('avatar-crop-modal').style.display = 'none';
-            document.body.style.overflow = '';
-            if (avatarCropper) {
-                avatarCropper.destroy();
-                avatarCropper = null;
-            }
-            document.getElementById('avatar').value = '';
-        }
-        
-        // Banner cropper functions
-        function initializeBannerCropper(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const cropImage = document.getElementById('banner-crop-image');
-                    cropImage.src = e.target.result;
-                    document.getElementById('banner-crop-modal').style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                    
-                    if (bannerCropper) {
-                        bannerCropper.destroy();
-                    }
-                    
-                    // Initialize cropper after modal is shown
-                    setTimeout(() => {
-                        bannerCropper = new Cropper(cropImage, {
-                            aspectRatio: 16/9,
-                            viewMode: 1,
-                            autoCropArea: 0.8,
-                            responsive: true,
-                            background: false,
-                            guides: true,
-                            center: true,
-                            highlight: false,
-                            cropBoxMovable: true,
-                            cropBoxResizable: true,
-                            toggleDragModeOnDblclick: false,
-                            minCropBoxWidth: 200,
-                            minCropBoxHeight: 112,
-                        });
-                    }, 100);
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-        
-        function cropBanner() {
-            if (bannerCropper) {
-                const canvas = bannerCropper.getCroppedCanvas({
-                    width: 800,
-                    height: 450,
-                });
-                
-                canvas.toBlob(function(blob) {
-                    croppedBannerBlob = blob;
-                    const url = URL.createObjectURL(blob);
-                    const preview = document.getElementById('banner-preview');
-                    preview.style.backgroundImage = `url(${url})`;
-                    document.getElementById('banner-crop-modal').style.display = 'none';
-                    document.body.style.overflow = '';
-                    bannerCropper.destroy();
-                    bannerCropper = null;
-                });
-            }
-        }
-        
-        function cancelBannerCrop() {
-            document.getElementById('banner-crop-modal').style.display = 'none';
-            document.body.style.overflow = '';
-            if (bannerCropper) {
-                bannerCropper.destroy();
-                bannerCropper = null;
-            }
-            document.getElementById('banner').value = '';
-        }
-        
-        // Override form submission to handle cropped images
-        document.querySelector('form').addEventListener('submit', function(e) {
-            if (croppedAvatarBlob || croppedBannerBlob) {
-                e.preventDefault();
-                
-                const formData = new FormData(this);
-                
-                if (croppedAvatarBlob) {
-                    formData.set('avatar', croppedAvatarBlob, 'avatar.jpg');
-                }
-                
-                if (croppedBannerBlob) {
-                    formData.set('banner', croppedBannerBlob, 'banner.jpg');
-                }
-                
-                fetch(this.action || window.location.href, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.text())
-                .then(html => {
-                    document.open();
-                    document.write(html);
-                    document.close();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while updating your profile.');
-                });
-            }
-        });
     </script>
 </body>
 </html>

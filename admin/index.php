@@ -290,7 +290,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         </main>
     </div>
     
-    <!-- Modal for viewing details -->
+    
     <div id="detailsModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -298,8 +298,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body" id="modalBody">
-                <!-- Content will be populated by JavaScript -->
-            </div>
         </div>
     </div>
     
