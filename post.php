@@ -193,7 +193,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                 
                 <?php if(isLoggedIn()): ?>
                     <?php if($_SESSION['status'] !== 'limited'): ?>
-                        <form method="POST" class="comment-form">
+                        <form method="POST" class="comment-form" id="comment-form">
                             <div class="form-group">
                                 <div class="bbcode-toolbar">
                                     <button type="button" class="bbcode-btn" onclick="insertBBCode('comment-content', 'b')" title="Bold">
@@ -227,7 +227,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
                                         <span id="comment-count">0</span>/1000 characters
                                     </div>
                             </div>
-                            <button type="submit" class="btn btn-primary">Post Comment</button>
+                            <button type="submit" class="btn btn-primary" id="submit-comment-btn">Post Comment</button>
                         </form>
                     <?php else: ?>
                         <div class="alert alert-warning">Your account is limited. You cannot post comments.</div>
@@ -322,23 +322,63 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
     </main>
 
     <?php include 'includes/footer.php'; ?>
-    
+
     <script src="assets/js/bbcode.js"></script>
     <script src="assets/js/time-ago.js"></script>
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/content-moderation.js"></script>
     <script>
-        // Character counter for comment
-        document.getElementById('comment-content').addEventListener('input', function() {
-            document.getElementById('comment-count').textContent = this.value.length;
-        });
-        
-        // Initialize counter
-        document.getElementById('comment-count').textContent = document.getElementById('comment-content').value.length;
-        
+        const commentTextarea = document.getElementById('comment-content');
+        const commentForm = document.getElementById('comment-form');
+        const submitBtn = document.getElementById('submit-comment-btn');
+
+        if (commentTextarea) {
+            commentTextarea.addEventListener('input', function() {
+                document.getElementById('comment-count').textContent = this.value.length;
+            });
+
+            document.getElementById('comment-count').textContent = commentTextarea.value.length;
+        }
+
+        if (commentForm) {
+            commentForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const commentText = commentTextarea.value.trim();
+
+                if (!commentText) {
+                    return;
+                }
+
+                contentModeration.clearModerationFeedback(commentForm);
+                contentModeration.setLoadingState(submitBtn, true);
+
+                const result = await contentModeration.moderateText(commentText, 'comment', null);
+
+                contentModeration.setLoadingState(submitBtn, false);
+
+                if (result.success && !result.data.is_flagged) {
+                    commentForm.submit();
+                } else if (result.data.is_flagged) {
+                    contentModeration.showModerationFeedback(
+                        commentForm,
+                        result.data.message || 'Your comment may contain inappropriate language and cannot be posted.',
+                        'error'
+                    );
+                } else {
+                    contentModeration.showModerationFeedback(
+                        commentForm,
+                        result.data.message || 'An error occurred. Please try again.',
+                        'error'
+                    );
+                }
+            });
+        }
+
         function editComment(commentId) {
             document.getElementById('edit-form-' + commentId).style.display = 'block';
         }
-        
+
         function cancelEdit(commentId) {
             document.getElementById('edit-form-' + commentId).style.display = 'none';
         }

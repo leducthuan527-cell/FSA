@@ -4,6 +4,7 @@ require_once '../classes/Post.php';
 require_once '../classes/Comment.php';
 require_once '../classes/Report.php';
 require_once '../classes/User.php';
+require_once '../classes/ModerationLog.php';
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -17,11 +18,14 @@ $post = new Post($db);
 $comment = new Comment($db);
 $report = new Report($db);
 $user = new User($db);
+$moderation_log = new ModerationLog();
 
 $pending_posts = $post->getPendingPosts();
 $pending_comments = $comment->getPendingComments();
 $pending_reports = $report->getPendingReports();
 $all_users = $user->getAllUsers();
+$moderation_logs = $moderation_log->getFlaggedLogs(50);
+$moderation_stats = $moderation_log->getStats();
 
 // Handle actions
 if($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -81,6 +85,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <li><a href="#posts" class="nav-link">Pending Posts</a></li>
                 <li><a href="#comments" class="nav-link">Pending Comments</a></li>
                 <li><a href="#reports" class="nav-link">Reports</a></li>
+                <li><a href="#moderation" class="nav-link">AI Moderation</a></li>
                 <li><a href="#users" class="nav-link">Users</a></li>
                 <li><a href="../index.php" class="nav-link">← Back to Site</a></li>
             </ul>
@@ -105,6 +110,26 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="stat-card">
                         <h3>Total Users</h3>
                         <div class="stat-number"><?php echo count($all_users); ?></div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 2rem;">AI Moderation Stats</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Checks</h3>
+                        <div class="stat-number"><?php echo $moderation_stats['total']; ?></div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Flagged Content</h3>
+                        <div class="stat-number" style="color: #ef4444;"><?php echo $moderation_stats['flagged']; ?></div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Approved</h3>
+                        <div class="stat-number" style="color: #22c55e;"><?php echo $moderation_stats['approved']; ?></div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Rejected</h3>
+                        <div class="stat-number" style="color: #f59e0b;"><?php echo $moderation_stats['rejected']; ?></div>
                     </div>
                 </div>
             </section>
@@ -254,7 +279,66 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
                 </div>
             </section>
-            
+
+            <section id="moderation" class="admin-section">
+                <h1>AI Moderation Logs</h1>
+                <p style="margin-bottom: 1rem; color: #94a3b8;">Showing recently flagged content by the AI moderation system</p>
+                <div class="admin-table">
+                    <?php if(empty($moderation_logs)): ?>
+                        <p>No flagged content found.</p>
+                    <?php else: ?>
+                        <?php foreach($moderation_logs as $log): ?>
+                            <div class="admin-item">
+                                <div class="item-header">
+                                    <div class="item-header-left">
+                                        <span class="report-type" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">
+                                            <?php echo ucfirst($log['content_type']); ?> Flagged
+                                        </span>
+                                        <span>User ID: <?php echo htmlspecialchars($log['user_id']); ?></span>
+                                    </div>
+                                    <div class="item-header-right">
+                                        <span><?php echo date('M j, Y g:i A', strtotime($log['created_at'])); ?></span>
+                                    </div>
+                                </div>
+
+                                <div class="item-content">
+                                    <p><strong>Original Text:</strong></p>
+                                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1rem; border-radius: 6px; margin: 0.5rem 0; font-family: monospace;">
+                                        <?php echo htmlspecialchars(substr($log['original_text'], 0, 200)); ?><?php echo strlen($log['original_text']) > 200 ? '...' : ''; ?>
+                                    </div>
+
+                                    <?php if(!empty($log['flagged_categories'])): ?>
+                                        <p style="margin-top: 1rem;"><strong>Flagged Categories:</strong></p>
+                                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                                            <?php
+                                            $categories = json_decode($log['flagged_categories'], true);
+                                            if(is_array($categories)) {
+                                                foreach($categories as $cat):
+                                            ?>
+                                                <span style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem;">
+                                                    <?php echo htmlspecialchars($cat['category']); ?>
+                                                    (<?php echo number_format($cat['score'] * 100, 1); ?>%)
+                                                </span>
+                                            <?php
+                                                endforeach;
+                                            }
+                                            ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <p style="margin-top: 1rem;">
+                                        <strong>Action:</strong>
+                                        <span style="color: <?php echo $log['action_taken'] === 'rejected' ? '#ef4444' : '#22c55e'; ?>;">
+                                            <?php echo ucfirst($log['action_taken']); ?>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </section>
+
             <section id="users" class="admin-section">
                 <h1>User Management</h1>
                 <div class="admin-table">
