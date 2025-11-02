@@ -75,8 +75,11 @@ class ContentModerator {
 
         $data = [
             'input' => $text,
-            'model' => 'omni-moderation-latest'
+            'model' => 'text-moderation-latest'
         ];
+
+        error_log('MODERATOR: Calling OpenAI API with text: ' . substr($text, 0, 50));
+        error_log('MODERATOR: API Key exists: ' . (!empty($this->openai_api_key) ? 'yes' : 'no'));
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -86,13 +89,18 @@ class ContentModerator {
             'Content-Type: application/json',
             'Authorization: Bearer ' . $this->openai_api_key
         ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curl_error = curl_error($ch);
         curl_close($ch);
 
+        error_log('MODERATOR: Response code: ' . $http_code);
+        error_log('MODERATOR: Response body: ' . substr($response, 0, 200));
+
         if ($curl_error) {
+            error_log('MODERATOR: Curl error: ' . $curl_error);
             return [
                 'success' => false,
                 'error' => 'Network error: ' . $curl_error
@@ -100,6 +108,7 @@ class ContentModerator {
         }
 
         if ($http_code !== 200) {
+            error_log('MODERATOR: HTTP error ' . $http_code . ': ' . $response);
             return [
                 'success' => false,
                 'error' => 'API error: HTTP ' . $http_code
@@ -108,11 +117,14 @@ class ContentModerator {
 
         $decoded = json_decode($response, true);
         if (!$decoded) {
+            error_log('MODERATOR: Failed to decode response');
             return [
                 'success' => false,
                 'error' => 'Failed to parse API response'
             ];
         }
+
+        error_log('MODERATOR: API returned flagged=' . ($decoded['results'][0]['flagged'] ? 'true' : 'false'));
 
         return [
             'success' => true,
