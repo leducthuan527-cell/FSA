@@ -1,6 +1,6 @@
 class ContentModeration {
     constructor() {
-        this.apiEndpoint = '/api/moderate-content.php';
+        this.apiEndpoint = 'api/moderate-content.php';
     }
 
     async moderateText(text, contentType = 'comment', contentId = null) {
