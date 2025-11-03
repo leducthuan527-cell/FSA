@@ -75,30 +75,37 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
             // New comment
             $content = sanitizeInput($_POST['content']);
             if(!empty($content)) {
+                require_once 'classes/ContentModerator.php';
+                $moderator = new ContentModerator();
+                $moderation_result = $moderator->moderateContent($content, getUserId(), 'comment', null);
+
                 $media_file = null;
-                
+
                 // Handle media upload
                 if(isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
                     $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/webm', 'audio/mp3', 'audio/wav'];
                     $file_type = $_FILES['media']['type'];
                     $file_size = $_FILES['media']['size'];
-                    
+
                     if($file_size <= 10 * 1024 * 1024 && in_array($file_type, $allowed_types)) {
                         $file_extension = pathinfo($_FILES['media']['name'], PATHINFO_EXTENSION);
                         $new_filename = 'comment_media_' . getUserId() . '_' . time() . '.' . $file_extension;
                         $upload_path = 'assets/media/' . $new_filename;
-                        
+
                         if(!is_dir('assets/media')) {
                             mkdir('assets/media', 0755, true);
                         }
-                        
+
                         if(move_uploaded_file($_FILES['media']['tmp_name'], $upload_path)) {
                             $media_file = $new_filename;
                         }
                     }
                 }
-                
-                $comment->createWithMedia($post_id, getUserId(), $content, $media_file);
+
+                // Determine status based on moderation
+                $status = ($moderation_result['is_flagged']) ? 'pending' : 'pending';
+
+                $comment->createWithMedia($post_id, getUserId(), $content, $status);
                 // Clear form
                 $_POST = array();
             redirect("post.php?id=$post_id#comments");
@@ -357,21 +364,24 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
 
                 contentModeration.setLoadingState(submitBtn, false);
 
-                if (result.success && !result.data.is_flagged) {
-                    commentForm.submit();
-                } else if (result.data.is_flagged) {
-                    contentModeration.showModerationFeedback(
-                        commentForm,
-                        result.data.message || 'Your comment may contain inappropriate language and cannot be posted.',
-                        'error'
-                    );
-                } else {
+                if (!result.success) {
                     contentModeration.showModerationFeedback(
                         commentForm,
                         result.data.message || 'An error occurred. Please try again.',
                         'error'
                     );
+                    return;
                 }
+
+                if (result.isFlagged || result.data.is_flagged) {
+                    contentModeration.showModerationFeedback(
+                        commentForm,
+                        'Your comment will be reviewed by an administrator before appearing.',
+                        'warning'
+                    );
+                }
+
+                commentForm.submit();
             });
         }
 

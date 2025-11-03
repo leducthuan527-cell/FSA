@@ -20,7 +20,7 @@ $success = '';
 if($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = sanitizeInput($_POST['title']);
     $content = sanitizeInput($_POST['content']);
-    
+
     if(empty($title) || empty($content)) {
     $error = 'Please fill in all fields';
 } elseif(strlen($title) > 100) {
@@ -30,12 +30,22 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if(!$error) {
-    $post = new Post($db);
-    if($post->createWithMedia(getUserId(), $title, $content)) {
-        $success = 'Post submitted for review. It will be published after admin approval.';
-        $_POST = array(); // Clear form
+    require_once 'classes/ContentModerator.php';
+    $moderator = new ContentModerator();
+
+    $title_moderation = $moderator->moderateContent($title, getUserId(), 'post', null);
+    $content_moderation = $moderator->moderateContent($content, getUserId(), 'post', null);
+
+    if (!$title_moderation['success'] || !$content_moderation['success']) {
+        $error = 'Content moderation failed. Please try again.';
     } else {
-        $error = 'Failed to create post. Please try again.';
+        $post = new Post($db);
+        if($post->createWithMedia(getUserId(), $title, $content)) {
+            $success = 'Post submitted for review. It will be published after admin approval.';
+            $_POST = array();
+        } else {
+            $error = 'Failed to create post. Please try again.';
+        }
     }
     }
 }
@@ -156,21 +166,19 @@ if(!$error) {
     </main>
 
     <?php include 'includes/footer.php'; ?>
-    
+
     <script src="assets/js/bbcode.js"></script>
     <script src="assets/js/time-ago.js"></script>
     <script src="assets/js/main.js"></script>
     <script>
-        // Character counters
         document.getElementById('title').addEventListener('input', function() {
             document.getElementById('title-count').textContent = this.value.length;
         });
-        
+
         document.getElementById('content').addEventListener('input', function() {
             document.getElementById('content-count').textContent = this.value.length;
         });
-        
-        // Initialize counters
+
         document.getElementById('title-count').textContent = document.getElementById('title').value.length;
         document.getElementById('content-count').textContent = document.getElementById('content').value.length;
     </script>

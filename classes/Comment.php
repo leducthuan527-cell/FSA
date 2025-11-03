@@ -7,11 +7,11 @@ class Comment {
         $this->conn = $db;
     }
 
-    public function create($post_id, $user_id, $content) {
-    $query = "INSERT INTO " . $this->table_name . " (post_id, user_id, content, status) 
-              VALUES (?, ?, ?, 'pending')";
+    public function create($post_id, $user_id, $content, $status = 'pending') {
+    $query = "INSERT INTO " . $this->table_name . " (post_id, user_id, content, status)
+              VALUES (?, ?, ?, ?)";
     $stmt = $this->conn->prepare($query);
-    $result = $stmt->execute([$post_id, $user_id, $content]);
+    $result = $stmt->execute([$post_id, $user_id, $content, $status]);
 
     if ($result) {
         // Get post title for notification
@@ -30,11 +30,11 @@ class Comment {
     return $result;
     }
 
-    public function createWithMedia($post_id, $user_id, $content) {
-    $query = "INSERT INTO " . $this->table_name . " (post_id, user_id, content, status) 
-              VALUES (?, ?, ?, 'pending')";
+    public function createWithMedia($post_id, $user_id, $content, $status = 'pending') {
+    $query = "INSERT INTO " . $this->table_name . " (post_id, user_id, content, status)
+              VALUES (?, ?, ?, ?)";
     $stmt = $this->conn->prepare($query);
-    $result = $stmt->execute([$post_id, $user_id, $content]);
+    $result = $stmt->execute([$post_id, $user_id, $content, $status]);
 
     if ($result) {
         $post_query = "SELECT title FROM posts WHERE id = ?";
